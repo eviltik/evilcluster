@@ -1,0 +1,2 @@
+# evilcluster
+NodeJS Cluster Manager
