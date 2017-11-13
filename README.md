@@ -43,8 +43,8 @@ Then workers MAY FORKS when necessary (think about web server/api load balancing
           │             │
           │             └──── fork n
   child_process.spawn()
-           │
-           ├─────── worker 3 (no fork needed)
+          │
+          ├─────── worker 3 (no fork needed)
           ¦
           ¦
 
