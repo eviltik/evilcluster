@@ -21,7 +21,7 @@ Then workers MAY FORKS when necessary (think about web server/api load balancing
           │
  child_process.spawn()
           │
-          ├─────── worker 1
+          ├───────── worker 1
           │             │
           │        cluster.fork()
           │             │
@@ -33,7 +33,7 @@ Then workers MAY FORKS when necessary (think about web server/api load balancing
           │
  child_process.spawn()
           │
-          ├─────── worker 2
+          ├───────── worker 2
           │             │
           │        cluster.fork()
           │             │
