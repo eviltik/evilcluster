@@ -1,12 +1,19 @@
 # evilcluster
-Nodejs Cluster Manager
+Monolitic nodejs "Cluster" approach.
 
-# what ?
+# what ? why ?
 
-This module facilitates the implementation of an architecture (process) below
+Sometime, you can make the choice to not have a microservice architecture :
+* when you "pkg" (https://github.com/zeit/pkg) your node application
+* when the logic of microservices is not "appropriated" ( ... )
+* when you want one "Windows Service" (see https://nssm.cc/) with all in one
+
+
+This module aims at a pseudo monolithic architecture. The main process SPAWN workers.
+hen workers MAY FORKS when necessary (think about web server/api load balancing).
+
 
 ```
-
     main process
           │
           │
@@ -33,6 +40,9 @@ This module facilitates the implementation of an architecture (process) below
           │        cluster.fork()
           │             │
           │             └──── fork n
+  child_process.spawn()
+           │
+           ├─────── worker 3 (no fork needed)
           ¦
           ¦
 
@@ -41,31 +51,30 @@ This module facilitates the implementation of an architecture (process) below
 Example:
 
 ```
-
         my app
           │
           │
-          ├───── webserver - frontend
+          ├───── webserverFrontend
           │             │
           │             ├──── fork 1
           │             │
           │             └──── fork n
           │
-          ├───── webserver - api
+          ├───── webserverApi
           │             │
           │             ├──── fork 1
           │             │
           │             └──── fork n
           │
-          ├───── in memory datastore (only one master process))
+          ├───── inMemoryDatastore (only one master process)
           │
-          └───── background task manager
+          └───── backgroundTaskManager ...
 
 ```
 
 
-# why ?
+# what about inter-processes communication ?
 
-It can be useful in some cases:
-* when you "pkg" (https://github.com/zeit/pkg) your application
-* when the logic of microservices is not appropriated (!)
+In our previous example, the webserveApi worker MAY need to speak with inMemoryDatastore, and vice versa.
+
+
