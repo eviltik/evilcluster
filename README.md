@@ -12,7 +12,7 @@ This module facilitates the implementation of an architecture (process) below
           │
  child_process.spawn()
           │
-          ├───── worker 1
+          ├─────── worker 1
           │             │
           │        cluster.fork()
           │             │
@@ -24,7 +24,7 @@ This module facilitates the implementation of an architecture (process) below
           │
  child_process.spawn()
           │
-          ├───── worker 2
+          ├─────── worker 2
           │             │
           │        cluster.fork()
           │             │
