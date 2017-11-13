@@ -1,7 +1,7 @@
 # evilcluster
 Monolitic nodejs "Cluster" approach.
 
-# what ? why ?
+# What ? why ?
 
 Sometime, you can make the choice to not have a microservice architecture :
 * when you "pkg" (https://github.com/zeit/pkg) your node application
@@ -9,8 +9,10 @@ Sometime, you can make the choice to not have a microservice architecture :
 * when you want one "Windows Service" (see https://nssm.cc/) with all in one
 
 
+# Design purposal
+
 This module aims at a pseudo monolithic architecture. The main process SPAWN workers.
-hen workers MAY FORKS when necessary (think about web server/api load balancing).
+Then workers MAY FORKS when necessary (think about web server/api load balancing).
 
 
 ```
@@ -73,8 +75,9 @@ Example:
 ```
 
 
-# what about inter-processes communication ?
+# Inter-processes communication
 
-In our previous example, the webserveApi worker MAY need to speak with inMemoryDatastore, and vice versa.
+In our previous example, the webserverApi worker MAY need to speak with inMemoryDatastore, and vice versa.
 
+(to be continued)
 
