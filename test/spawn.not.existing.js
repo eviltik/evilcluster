@@ -16,7 +16,7 @@ function exit() {
 }
 
 function onReady(ev, data) {
-    tap.test(path.basename(__filename), (t) => {
+    tap.test(path.basename(__filename), { timeout: 1000 }, (t) => {
         t.pass('ready event received by the master');
         t.end();
         exit();
@@ -24,7 +24,7 @@ function onReady(ev, data) {
 }
 
 function onError(ev, data) {
-    tap.test(path.basename(__filename), (t) => {
+    tap.test(path.basename(__filename), { timeout: 1000 }, (t) => {
         t.pass('error event received by the master');
         t.end();
         exit();

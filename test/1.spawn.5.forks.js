@@ -2,7 +2,7 @@ const ec = new (require('../'))(__filename, 'workers/');
 const path = require('path');
 const cluster = require('cluster');
 const tap = require('tap');
-const common = require('./common/events.js')(__filename);
+const common = require('./common/events')(__filename);
 
 let workers = {
     testWorker1:{
@@ -11,7 +11,7 @@ let workers = {
 };
 
 function onSpawned(ev, data) {
-    tap.test(path.basename(__filename), (t) => {
+    tap.test(path.basename(__filename), common.testOptions, (t) => {
         t.pass('spawned event received by the master');
 
         t.equal(
@@ -35,7 +35,6 @@ if (cluster.isMaster && !cluster.isSpawn) {
     ec.onEvent('error', common.onErrorUnexpected);
     ec.onEvent('spawned', onSpawned);
 }
-
 
 ec.start(workers);
 
