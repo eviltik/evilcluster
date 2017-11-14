@@ -4,7 +4,7 @@
   "description": "nodejs cluster manager",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/tap/bin/run.js test/*"
+    "test": "node node_modules/tap/bin/run.js test/*.js"
   },
   "repository": {
     "type": "git",
