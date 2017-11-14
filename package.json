@@ -1,0 +1,29 @@
+{
+  "name": "evilcluster",
+  "version": "0.5.0",
+  "description": "nodejs cluster manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/tap/bin/run.js test/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/eviltik/evilcluster.git"
+  },
+  "keywords": [
+    "cluster"
+  ],
+  "author": "eviltik",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eviltik/evilcluster/issues"
+  },
+  "homepage": "https://github.com/eviltik/evilcluster#readme",
+  "dependencies": {
+    "async": "2.6.0",
+    "minimist": "1.2.0"
+  },
+  "devDependencies": {
+    "tap": "10.7.3"
+  }
+}
