@@ -44,7 +44,7 @@ if (cluster.isMain) {
             );
             t.end();
         });
-        common.waitAndExit(100);
+        common.waitAndExit(200);
     });
 
 
@@ -58,6 +58,7 @@ if (cluster.isMain) {
             t.end();
         });
     });
+
 }
 
 
