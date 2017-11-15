@@ -36,7 +36,7 @@ class Evilcluster extends EventEmitter {
         };
 
         this.config.evileventsOptions = {
-            transport:'tcp', // ipc or tcp
+            transport:'tcp', // never use ipc for moment
             verbose:false
         };
 
@@ -175,7 +175,7 @@ class Evilcluster extends EventEmitter {
         async.mapValues(
             this.workers,
             (worker, workerId, next) => {
-                this.workers[workerId].spawn.kill();
+                this.workers[workerId].spawn && this.workers[workerId].spawn.kill();
                 next();
             },
             callback
