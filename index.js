@@ -239,7 +239,7 @@ class Evilcluster extends EventEmitter {
         );
     }
 
-    killSpawns(callback) {
+    killSpawns() {
         this.debug('killSpawns triggered');
         async.mapValues(
             this.workers,
@@ -257,9 +257,6 @@ class Evilcluster extends EventEmitter {
                     // process is not yet spawned
                 }
                 next();
-            },
-            () => {
-                callback && callback();
             }
         );
     }
