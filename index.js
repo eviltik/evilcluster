@@ -27,7 +27,7 @@ class Evilcluster extends EventEmitter {
         // remove js file
         this.config.clusterArgs.shift();
 
-        console.log(this.config.argz);
+        //console.log(this.config.argz);
 
         this.config.spawnOptions = {
             // windowsHide: false when using node, true when running in a packaged binary (see pkg module)
@@ -175,7 +175,6 @@ class Evilcluster extends EventEmitter {
         async.mapValues(
             this.workers,
             (worker, workerId, next) => {
-                console.log('kill %s',workerId);
                 this.workers[workerId].spawn.kill();
                 next();
             },
