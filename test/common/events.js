@@ -8,8 +8,12 @@ var testOptions = {
 };
 
 function exit() {
-    process.nextTick(() => {
-        process.exit();
+    tap.test(testFile, testOptions, (t) => {
+        process.nextTick(() => {
+            t.pass('exiting');
+            t.end();
+            process.exit();
+        });
     });
 }
 

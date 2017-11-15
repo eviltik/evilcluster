@@ -27,7 +27,7 @@ class Evilcluster extends EventEmitter {
         // remove js file
         this.config.clusterArgs.shift();
 
-        //console.log(this.config.argz);
+        console.log(this.config.argz);
 
         this.config.spawnOptions = {
             // windowsHide: false when using node, true when running in a packaged binary (see pkg module)
@@ -41,6 +41,10 @@ class Evilcluster extends EventEmitter {
         };
 
         this.config.evileventsOptions.forkId = this.config.argz.worker;
+
+        if (!this.isSpawned() && !this.isForked()) {
+            process.on('exit', this.killSpawns.bind(this));
+        }
 
         if (this.isSpawned()) {
             cluster.forceClient = true;
@@ -162,6 +166,18 @@ class Evilcluster extends EventEmitter {
             this.workers,
             (worker, workerId, next) => {
                 this.spawnWorker(workerId, next);
+            },
+            callback
+        );
+    }
+
+    killSpawns(callback) {
+        async.mapValues(
+            this.workers,
+            (worker, workerId, next) => {
+                console.log('kill %s',workerId);
+                this.workers[workerId].spawn.kill();
+                next();
             },
             callback
         );
