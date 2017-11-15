@@ -27,8 +27,6 @@ class Evilcluster extends EventEmitter {
         // remove js file
         this.config.clusterArgs.shift();
 
-        //console.log(this.config.argz);
-
         this.config.spawnOptions = {
             // windowsHide: false when using node, true when running in a packaged binary (see pkg module)
             windowsHide: !this.config.binPath.match(/node/),
@@ -40,35 +38,71 @@ class Evilcluster extends EventEmitter {
             verbose:false
         };
 
-        this.config.evileventsOptions.forkId = this.config.argz.worker;
+        this.config.evileventsOptions.forkId = this.config.argz.worker||'master';
 
         if (!this.isSpawned() && !this.isForked()) {
-            process.on('exit', this.killSpawns.bind(this));
-        }
 
-        if (this.isSpawned()) {
+            cluster.isMain = true;
+            cluster.isSpawn = false;
+            cluster.isFork = false;
+            cluster.cid = 'main';
+            process.on('exit', this.killSpawns.bind(this));
+
+        } else if (this.isSpawned()) {
+
             cluster.forceClient = true;
             cluster.isSpawn = true;
             cluster.isFork = false;
-        }
+            cluster.isMain = false;
+            cluster.cid = this.config.argz.worker;
 
-        if (this.isForked()) {
+        } else if (this.isForked()) {
+
             cluster.isSpawn = false;
             cluster.isFork = true;
+            cluster.isMain = false;
             cluster.forkNumber = this.config.argz.forkNumber;
+            cluster.cid = this.config.argz.worker+':'+cluster.forkNumber;
             this.config.evileventsOptions.forkId = this.config.argz.worker+'#'+cluster.forkNumber;
+
         }
+
+        this.debug = require('debug')('evilcluster:'+cluster.cid);
+        this.debug('argz',this.config.argz);
 
         this.cev = require('evilevents');
     }
 
     onEvent(eventName, fnc) {
-        this.cev.on(eventName, fnc);
-        this.on(eventName, fnc);
+        this.debug('onEvent',eventName);
+
+        this.cev.on(eventName, (eventName, data) => {
+            if (data!=undefined) {
+                this.debug('onEvent received %s %s', eventName, JSON.stringify(data));
+            } else {
+                this.debug('onEvent received %s', eventName);
+            }
+            fnc(eventName, data);
+        });
+
+        /*
+        this.on(eventName, (data) => {
+            console.log();
+            console.log(eventName);
+            console.log(data);
+
+            if (data!=undefined) {
+                this.debug('onEvent received %s %s', eventName, JSON.stringify(data));
+            } else {
+                this.debug('onEvent received %s', eventName);
+            }
+            fnc(data);
+        });
+        */
     }
 
     isSpawned() {
-        return this.config.argz.worker;
+        return this.config.argz.worker && !this.config.argz.forkNumber;
     }
 
     isForked() {
@@ -79,32 +113,58 @@ class Evilcluster extends EventEmitter {
 
         this.cev.connect(this.config.evileventsOptions,(err) => {
 
-            if (err && callback) return callback(err);
+            if (err && callback) {
+                this.debug('runCode error',err);
+                return callback(err);
+            }
 
+            let file = path.resolve(this.config.workersDir+'/'+this.config.argz.worker);
             try {
-                require(path.resolve(this.config.workersDir+'/'+this.config.argz.worker));
+                this.debug('runCode require',file);
+                require(file);
             } catch(e) {
                 this.sendEvent('error',e.stack);
                 process.exit(1);
             }
+
             callback && callback();
         });
     }
 
     respawnWorker(workerId) {
+
+        this.debug(
+            'respawnWorker %s in %s',
+            workerId,
+            this.workers[workerId].respawnNextInterval,'ms'
+        );
+
         setTimeout(()=>{
             this.spawnWorker(workerId);
         },this.workers[workerId].respawnNextInterval);
     }
 
     onWorkerError(workerSpawn, err) {
-        console.log(err);
+        this.debug('onWorkerError',err);
         this.respawnWorker(workerSpawn.id);
     }
 
-    onWorkerExit(workerSpawn, exitCode) {
-        console.log('worker %s exit with code %s', workerSpawn.id, exitCode);
-        this.respawnWorker(workerSpawn.id+'');
+    onWorkerClose(workerSpawn, exitCode) {
+        if (exitCode>0) {
+            this.debug(
+                'onWorkerClose %s exit with code %s, trigger respawnWorker',
+                workerSpawn.id,
+                exitCode
+            );
+            this.respawnWorker(workerSpawn.id + '');
+            return;
+        }
+
+        workerSpawn.killed = true;
+        this.debug(
+            'onWorkerClose %s exit normally (0), dont trigger respawnWorker',
+            workerSpawn.id
+        );
     }
 
     spawnWorker(workerId, callback) {
@@ -128,7 +188,6 @@ class Evilcluster extends EventEmitter {
         if (wk.spawnCount) {
             if (wk.spawnCount<10) {
                 wk.respawnNextInterval = wk.respawnInterval * wk.spawnCount;
-                console.log("%s restartInterval %s", workerId, wk.respawnNextInterval);
             }
             wk.spawnCount++;
         } else {
@@ -137,11 +196,18 @@ class Evilcluster extends EventEmitter {
 
         let self = this;
 
+        this.debug(
+            'spawnWorker %s: binPath=%s, spawnOptions=%s',
+            workerId,
+            this.config.binPath,
+            JSON.stringify(this.config.spawnOptions)
+        );
+
         wk.spawn = spawn(this.config.binPath, args, this.config.spawnOptions);
         wk.spawn.id = workerId;
 
         wk.spawn.on('close', function (exitCode) {
-            self.onWorkerExit(this, exitCode);
+            self.onWorkerClose(this, exitCode);
         });
 
         wk.spawn.on('error', function(err) {
@@ -152,6 +218,8 @@ class Evilcluster extends EventEmitter {
     }
 
     spawnWorkers(callback) {
+
+        this.debug('spawnWorkers');
 
         this.spawned = 0;
 
@@ -172,13 +240,27 @@ class Evilcluster extends EventEmitter {
     }
 
     killSpawns(callback) {
+        this.debug('killSpawns triggered');
         async.mapValues(
             this.workers,
             (worker, workerId, next) => {
-                this.workers[workerId].spawn && this.workers[workerId].spawn.kill();
+                if (this.workers[workerId].spawn) {
+                    if (!this.workers[workerId].spawn.killed) {
+                        this.debug('killSpawns: %s => kill()', workerId);
+                        this.workers[workerId].spawn.kill();
+                    } else {
+                        this.debug('killSpawns: %s => already killed', workerId);
+                        // already killed
+                    }
+                } else {
+                    this.debug('killSpawns: %s => no spawn ??', workerId);
+                    // process is not yet spawned
+                }
                 next();
             },
-            callback
+            () => {
+                callback && callback();
+            }
         );
     }
 
@@ -191,6 +273,7 @@ class Evilcluster extends EventEmitter {
             this.runCode(()=>{
                 process.nextTick(()=>{
                     // send event to spawned master process (not the main process)
+                    this.debug('forked, sending %s', workerId+':forked');
                     this.sendEvent(workerId+':forked',{forkNumber:cluster.forkNumber});
                 });
             });
@@ -201,6 +284,7 @@ class Evilcluster extends EventEmitter {
             this.runCode(()=> {
                 // worker has no forks, spawn is ready
                 process.nextTick(()=> {
+                    this.debug('no forks required, sending master:spawned');
                     this.sendEvent('master:spawned');
                 });
             });
@@ -213,6 +297,7 @@ class Evilcluster extends EventEmitter {
             this.onEvent('forked',(ev, data) => {
                 this.workers[workerId].forked++;
                 if (this.workers[workerId].forked == this.config.argz.maxForks) {
+                    this.debug('all forks has been forked, sending master:spawned');
                     this.sendEvent('master:spawned',{forks:this.workers[workerId].forked});
                 }
             })
@@ -225,6 +310,7 @@ class Evilcluster extends EventEmitter {
 
         for (let i = 0; i<maxForks; i++) {
             cluster.settings.args.push('--forkNumber='+(i+1));
+            this.debug('forking',JSON.stringify(cluster.settings));
             cluster.fork();
             cluster.settings.args.pop();
         }
@@ -235,7 +321,7 @@ class Evilcluster extends EventEmitter {
 
         this.workers = JSON.parse(JSON.stringify(workers));
 
-        if (this.isSpawned()) {
+        if (cluster.isSpawn || cluster.isFork) {
             this.spawnFork();
             return;
         }
@@ -250,8 +336,8 @@ class Evilcluster extends EventEmitter {
             (next) => {
                 this.spawnWorkers(next)
             }
-        ], () => {
-
+        ], (err) => {
+            if (err) this.debug('start error',err);
         });
     }
 
@@ -273,6 +359,11 @@ class Evilcluster extends EventEmitter {
     }
 
     sendEvent(eventName, data) {
+        if (data!=undefined) {
+            this.debug('sendEvent %s %s', eventName, JSON.stringify(data));
+        } else {
+            this.debug('sendEvent %s', eventName);
+        }
         this.cev.send(eventName, data);
     }
 

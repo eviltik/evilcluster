@@ -4,7 +4,7 @@
   "description": "nodejs cluster manager",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/tap/bin/run.js -b test/*.js"
+    "test": "node node_modules/tap/bin/run test/*.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,8 @@
   "homepage": "https://github.com/eviltik/evilcluster#readme",
   "dependencies": {
     "async": "2.6.0",
-    "evilevents": "1.0.5",
+    "debug": "3.1.0",
+    "evilevents": "1.0.7",
     "minimist": "1.2.0"
   },
   "devDependencies": {

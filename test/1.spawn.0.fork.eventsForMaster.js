@@ -5,8 +5,8 @@ const tap = require('tap');
 const common = require('./common')(__filename);
 
 let workers = {
-    testWorker1:{
-        maxForks:5
+    testWorkerEvents:{
+        maxForks:0
     }
 };
 
@@ -16,14 +16,14 @@ function onSpawned(ev, data) {
 
         t.equal(
             data._emitter,
-            'testWorker1',
+            'testWorkerEvents',
             'spawned event emitter should be worker id'
         );
 
         t.equal(
             data.forks,
-            workers.testWorker1.maxForks,
-            'number of fork should be equal to '+workers.testWorker1.maxForks
+            undefined,
+            'number of fork should be equal to undefined'
         );
 
         t.end();
@@ -31,10 +31,23 @@ function onSpawned(ev, data) {
 }
 
 if (cluster.isMain) {
-    ec.onEvent('ready', common.onReadyExpected);
+    ec.onEvent('ready', common.onReadyExpectedNoExit);
     ec.onEvent('error', common.onErrorUnexpected);
     ec.onEvent('spawned', onSpawned);
 }
 
-ec.start(workers);
+ec.onEvent('myEventToMaster', () => {
+    tap.test(common.me, common.testOptions, (t) => {
+        t.equal(
+            cluster.isMain,
+            true,
+            'event should be received only by the main process'
+        );
+        t.end();
+    });
+});
 
+common.waitAndExit(500);
+
+ec.start(workers);
+cluster.ec = ec;
