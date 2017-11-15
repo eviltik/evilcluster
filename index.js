@@ -34,7 +34,7 @@ class Evilcluster extends EventEmitter {
         };
 
         this.config.evileventsOptions = {
-            transport:'tcp', // never use ipc for moment
+            transport:'tcp', // never use ipc due a limitation in evilevents atm
             verbose:false
         };
 
@@ -70,13 +70,13 @@ class Evilcluster extends EventEmitter {
         this.debug = require('debug')('evilcluster:'+cluster.cid);
         this.debug('argz',this.config.argz);
 
-        this.cev = require('evilevents');
+        this.ee = require('evilevents');
     }
 
     onEvent(eventName, fnc) {
         this.debug('onEvent',eventName);
 
-        this.cev.on(eventName, (eventName, data) => {
+        this.ee.on(eventName, (eventName, data) => {
             if (data!=undefined) {
                 this.debug('onEvent received %s %s', eventName, JSON.stringify(data));
             } else {
@@ -111,7 +111,7 @@ class Evilcluster extends EventEmitter {
 
     runCode(callback) {
 
-        this.cev.connect(this.config.evileventsOptions,(err) => {
+        this.ee.client.connect(this.config.evileventsOptions,(err) => {
 
             if (err && callback) {
                 this.debug('runCode error',err);
@@ -328,7 +328,7 @@ class Evilcluster extends EventEmitter {
 
         async.series([
             (next) => {
-                this.cev.startServer(
+                this.ee.server.start(
                     this.config.evileventsOptions,
                     next
                 );
@@ -341,30 +341,17 @@ class Evilcluster extends EventEmitter {
         });
     }
 
-    clusterEventInfo() {
-        return this.cev.info();
-    }
-
-    getInfo() {
-        if (this.config.argz.worker) {
-            return {
-                'worker':true,
-                'spawn':this.config.argz.worker
-            }
-        } else {
-            return {
-                'main':true
-            }
-        }
-    }
-
     sendEvent(eventName, data) {
         if (data!=undefined) {
             this.debug('sendEvent %s %s', eventName, JSON.stringify(data));
         } else {
             this.debug('sendEvent %s', eventName);
         }
-        this.cev.send(eventName, data);
+        if (cluster.isMain) {
+            this.ee.server.send(eventName, data);
+        } else {
+            this.ee.client.send(eventName, data);
+        }
     }
 
 }
