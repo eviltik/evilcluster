@@ -14,9 +14,55 @@ Sometime, you can make the choice to not have a microservice architecture :
 
 # Design purposal
 
-This module aims at a pseudo monolithic architecture. The main process SPAWN workers.
-Then workers MAY FORKS when necessary (think about web server/api load balancing).
+Below a classical design of microservices running on the same box.
 
+Usualy, master processes and forks talk each other using IPC (process.send).
+Only a boolean (cluster.isMaster) is available to handle code running in
+forks vs master process.
+
+Process 1 can not speak natively with process 2 unless if you implement it,
+a kind of gateway between them (webservices, websockets, tcp, redis, ...).
+This is a best practice because of scalability and deployment facility.
+
+```
+
+
+  process 1
+      │
+      │
+ cluster.fork()
+      │
+      ├──── fork 1
+      │
+ cluster.fork()
+      │
+      └──── fork n
+
+
+  process 2
+      │
+      │
+ cluster.fork()
+      │
+      ├──── fork 1
+      │
+ cluster.fork()
+      │
+      └──── fork n
+
+```
+
+
+But if you don't need scalability, and you NEED to NOT have many different processes,
+you are thinking about a monolithic architecture.
+
+This module aims at a pseudo monolithic architecture. The main process SPAWN workers.
+Then spawned workers MAY FORKS.
+
+So:
+* cluster.isMaster is true when it's the main process
+* cluster.isSpawn is true when it's a spawned worker
+* cluster.isFork is true when it's a fork of a spawned worker
 
 ```
     main process
@@ -59,28 +105,26 @@ Example:
         my app
           │
           │
-          ├───── webserverFrontend
-          │             │
-          │             ├──── fork 1
-          │             │
-          │             └──── fork n
+          ├── webserverFrontend
+          │          │
+          │          ├──── fork 1
+          │          │
+          │          └──── fork n
           │
-          ├───── webserverApi
-          │             │
-          │             ├──── fork 1
-          │             │
-          │             └──── fork n
+          ├── webserverApi
+          │          │
+          │          ├──── fork 1
+          │          │
+          │          └──── fork n
           │
-          ├───── inMemoryDatastore (only one master process)
+          ├── inMemoryDatastore (only one master process)
           │
-          └───── backgroundTaskManager ...
+          └── backgroundTaskManager ...
 
 ```
 
 
 # Inter-processes communication
 
-In our previous example, the webserverApi worker MAY need to speak with inMemoryDatastore, and vice versa.
-
-(to be continued)
+(DOC/TODO)
 
