@@ -4,25 +4,28 @@
 
 Monolithic approach of nodejs clustering.
 
-# What ? why ?
+## What ? why ?
 
-Sometime, you can make the choice to not have a microservice architecture :
-* when you "pkg" (https://github.com/zeit/pkg) your node application
+Sometime, you can make the choice to **not have** a microservice architecture :
+
+* when you "pkg" (https://github.com/zeit/pkg) your nodejs application
 * when the logic of microservices is not "appropriated" ( ... )
-* when you want one "Windows Service" (see https://nssm.cc/) with all in one
+* when you want to have only one "Windows Service" (see https://nssm.cc/)
+with all your modules inside
 
 
-# Design purposal
+## Best practice microservice design
 
 Below a classical design of microservices running on the same box.
 
-Usualy, master processes and forks talk each other using IPC (process.send).
+Usually, master processes and forks talk each other using IPC (process.send).
 Only a boolean (cluster.isMaster) is available to handle code running in
 forks vs master process.
 
 Process 1 can not speak natively with process 2 unless if you implement it,
 a kind of gateway between them (webservices, websockets, tcp, redis, ...).
 This is a best practice because of scalability and deployment facility.
+
 
 ```
 
@@ -52,8 +55,12 @@ This is a best practice because of scalability and deployment facility.
 ```
 
 
-But **IF** you **DON'T NEED** scalability, and you **NEED** to **NOT** have many different
-standalone processes, you are thinking about a monolithic architecture.
+## Monolithic design approach
+
+Now, **IF** you **DON'T NEED** scalability, and you **NEED** to **NOT** have
+many different standalone processes, you are thinking about a monolithic architecture,
+and you will have to find a way to monitor spawned processes, speak
+between master/spawns/forks processes, logs, ...
 
 This module aims at a pseudo monolithic architecture. The main process **SPAWN** workers.
 Then spawned workers **MAY FORKS**.
@@ -124,7 +131,7 @@ Real example:
 ```
 
 
-# Inter-processes communication
+## Inter-processes communication
 
 (DOC/TODO)
 
