@@ -57,12 +57,12 @@ This is a best practice because of scalability and deployment facility.
 
 ## Monolithic design approach
 
-Now, **IF** you **DON'T NEED** scalability, and you **NEED** to **NOT** have
-many different standalone processes, you are thinking about a monolithic architecture,
-and you will have to find a way to monitor spawned processes, speak
-between master/spawns/forks processes, logs, ...
+Now, if you **NEED** to **NOT** have many different standalone processes,
+you are thinking about a monolithic architecture, and you will have to
+find a way to monitor spawned processes, speak between master/spawns/forks
+processes, handle logs, ...
 
-This module aims at a pseudo monolithic architecture. The main process **SPAWN** workers.
+This (poc) module aims at a pseudo monolithic architecture. The main process **SPAWN** workers.
 Then spawned workers **MAY FORKS**.
 
 So:
