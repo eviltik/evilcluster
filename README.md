@@ -26,7 +26,6 @@ This is a best practice because of scalability and deployment facility.
 
 ```
 
-
   process 1
       │
       │
@@ -53,11 +52,11 @@ This is a best practice because of scalability and deployment facility.
 ```
 
 
-But if you don't need scalability, and you NEED to NOT have many different processes,
-you are thinking about a monolithic architecture.
+But **IF** you **DON'T NEED** scalability, and you **NEED** to **NOT** have many different
+standalone processes, you are thinking about a monolithic architecture.
 
-This module aims at a pseudo monolithic architecture. The main process SPAWN workers.
-Then spawned workers MAY FORKS.
+This module aims at a pseudo monolithic architecture. The main process **SPAWN** workers.
+Then spawned workers **MAY FORKS**.
 
 So:
 * cluster.isMaster is true when it's the main process
@@ -99,7 +98,8 @@ So:
 
 ```
 
-Example:
+
+Real example:
 
 ```
         my app
