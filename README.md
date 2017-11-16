@@ -99,7 +99,7 @@ So:
           │             └──── fork n
   child_process.spawn()
           │
-          ├─────── worker 3 (no fork needed)
+          ├─────── worker 3 (no fork wanted)
           ¦
           ¦
 
