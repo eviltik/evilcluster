@@ -71,6 +71,7 @@ class Evilcluster extends EventEmitter {
         this.debug('argz',this.config.argz);
 
         this.ee = require('evilevents');
+        cluster.ec = this;
     }
 
     onEvent(eventName, fnc) {
