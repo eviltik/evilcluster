@@ -36,5 +36,13 @@ if (cluster.isMain) {
     ec.onEvent('spawned', onSpawned);
 }
 
+
+if (cluster.isSpawn) {
+    ec.onEvent('spawned', (ev,data) => {
+        //console.log(ev,data);
+        //@todo make test for this case ...
+    });
+}
+
 ec.start(workers);
 

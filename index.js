@@ -284,6 +284,7 @@ class Evilcluster extends EventEmitter {
                 process.nextTick(()=> {
                     this.debug('no forks required, sending master:spawned');
                     this.sendEvent('master:spawned');
+                    this.sendEvent(workerId+':spawned',{forks:0});
                 });
             });
             return;
@@ -297,6 +298,7 @@ class Evilcluster extends EventEmitter {
                 if (this.workers[workerId].forked == this.config.argz.maxForks) {
                     this.debug('all forks has been forked, sending master:spawned');
                     this.sendEvent('master:spawned',{forks:this.workers[workerId].forked});
+                    this.sendEvent(workerId+':spawned',{forks:this.workers[workerId].forked});
                 }
             })
         });
