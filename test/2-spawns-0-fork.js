@@ -39,7 +39,7 @@ if (require.main === module) {
     }
 
     ec.start(workers);
-    common.waitAndExit(1000);
+    common.waitAndExit(2000);
 
 } else {
 
