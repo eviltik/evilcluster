@@ -35,14 +35,20 @@ function testsStart() {
                 input     : sub.stdout,
             }).on('line', (line) => {
                 console.log(line);
-                stdout.push(line);
+                // ignore line when debug log
+                // when env var DEBUG is set
+                if (!line.match(/^[0-9]{4}\-/)) {
+                    stdout.push(line);
+                }
             });
 
             let rlStderr = readline.createInterface({
                 input     : sub.stderr,
             }).on('line', (line) => {
                 console.log(line);
-                stderr.push(line);
+                if (!line.match(/^[0-9]{4}\-/)) {
+                    stderr.push(line);
+                }
             });
 
             sub.on('exit', function (code) {
