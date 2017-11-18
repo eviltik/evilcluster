@@ -6,31 +6,36 @@ const common = require('./common')(__filename);
 let workers = {
     testWorker1:{
         maxForks:0
+    },
+    testWorker2:{
+        maxForks:0
     }
 };
 
 if (require.main === module) {
 
-    function onSpawn(ev, data) {
+    function onSpawned(ev, data) {
         console.log(common.msg.mainReceiveSpawnedEvent);
 
-        assert.equal(data._emitter, 'testWorker1');
+        assert.equal(typeof workers[data._emitter], 'object');
         console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
-        assert.equal(data.forks, workers[data._emitter].maxForks);
+        assert.equal(data.forks, workers.testWorker1.maxForks);
         console.log(common.msg.mainReceiveSpawnedEventControlForksCount);
     }
 
     if (cluster.isMain) {
         ec.onEvent('ready', common.onReadyExpected);
         ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawn);
+        ec.onEvent('spawned', onSpawned);
     }
 
     if (cluster.isSpawn) {
+
         ec.onEvent('spawned', () => {
             console.log(common.msg.spawnReceivedSpawnedEvent);
         });
+
     }
 
     ec.start(workers);
@@ -42,10 +47,14 @@ if (require.main === module) {
         expected:{
             stdout:[
                 common.msg.spawnReceivedSpawnedEvent,
+                common.msg.spawnReceivedSpawnedEvent,
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.mainReceiveReadyEvent,
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.mainReceiveReadyEvent
             ]
         }
     };

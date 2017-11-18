@@ -1,8 +1,7 @@
 const ec = new (require('../'))(__filename, 'workers/');
-const path = require('path');
 const cluster = require('cluster');
-const tap = require('tap');
 const common = require('./common')(__filename);
+const assert = require('assert');
 
 let workers = {
     testWorkerEvents:{
@@ -10,44 +9,46 @@ let workers = {
     }
 };
 
-function onSpawned(ev, data) {
-    tap.test(common.me, common.testOptions, (t) => {
-        t.pass('spawned event received by the master');
+if (require.main === module) {
 
-        t.equal(
-            data._emitter,
-            'testWorkerEvents',
-            'spawned event emitter should be worker id'
-        );
+    function onSpawned(ev, data) {
+        console.log(common.msg.mainReceiveSpawnedEvent);
 
-        t.equal(
-            data.forks,
-            undefined,
-            'number of fork should be equal to undefined'
-        );
+        assert.equal(data._emitter, 'testWorkerEvents');
+        console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
-        t.end();
+        assert.equal(data.forks, workers[data._emitter].maxForks);
+        console.log(common.msg.mainReceiveSpawnedEventControlForksCount);
+    }
+
+    if (cluster.isMain) {
+        ec.onEvent('ready', common.onReadyExpectedNoExit);
+        ec.onEvent('error', common.onErrorUnexpected);
+        ec.onEvent('spawned', onSpawned);
+    }
+
+    ec.onEvent('spawnToMasterOnly', () => {
+        assert.equal(cluster.isMain,true);
+        assert.equal(cluster.isSpawn,false);
+        assert.equal(cluster.isFork,false);
+        console.log(common.msg.mainReceiveCustomEvent);
     });
+
+    ec.start(workers);
+    common.waitAndExit(400);
+
+} else {
+
+    module.exports = {
+        expected:{
+            stdout:[
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.mainReceiveReadyEvent,
+                common.msg.mainReceiveCustomEvent
+            ]
+        }
+    };
+
 }
-
-if (cluster.isMain) {
-    ec.onEvent('ready', common.onReadyExpectedNoExit);
-    ec.onEvent('error', common.onErrorUnexpected);
-    ec.onEvent('spawned', onSpawned);
-}
-
-ec.onEvent('myEventToMaster', () => {
-    tap.test(common.me, common.testOptions, (t) => {
-        t.equal(
-            cluster.isMain,
-            true,
-            'event should be received only by the main process'
-        );
-        t.end();
-    });
-});
-
-common.waitAndExit(500);
-
-ec.start(workers);
-cluster.ec = ec;

@@ -2,8 +2,8 @@ const cluster = require('cluster');
 
 setTimeout(()=>{
 
-    cluster.ec.sendEvent('master:myEventToMaster');
-    cluster.ec.sendEvent('myEventForMasterAndMe');
+    cluster.ec.sendEvent('master:spawnToMasterOnly');
+    cluster.ec.sendEvent('spawnToBothMasterAndSpawn');
 
-},200);
+},100);
 

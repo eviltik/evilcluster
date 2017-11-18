@@ -115,13 +115,13 @@ class Evilcluster extends EventEmitter {
         this.ee.client.connect(this.config.evileventsOptions,(err) => {
 
             if (err && callback) {
-                this.debug('runCode error',err);
+                this.debug('runCode error', err);
                 return callback(err);
             }
 
             let file = path.resolve(this.config.workersDir+'/'+this.config.argz.worker);
             try {
-                this.debug('runCode require',file);
+                this.debug('runCode require', file);
                 require(file);
             } catch(e) {
                 this.sendEvent('error',e.stack);
@@ -283,9 +283,9 @@ class Evilcluster extends EventEmitter {
                 // worker has no forks, spawn is ready
                 process.nextTick(()=> {
                     this.debug('no forks required, sending master:spawned');
-                    this.sendEvent('master:spawned');
-                    this.sendEvent(workerId+':spawned',{forks:0});
+                    this.sendEvent('master:spawned', {forks:0});
                 });
+                this.sendEvent(workerId+':spawned',{forks:0});
             });
             return;
         }
@@ -296,9 +296,16 @@ class Evilcluster extends EventEmitter {
             this.onEvent('forked',(ev, data) => {
                 this.workers[workerId].forked++;
                 if (this.workers[workerId].forked == this.config.argz.maxForks) {
-                    this.debug('all forks has been forked, sending master:spawned');
-                    this.sendEvent('master:spawned',{forks:this.workers[workerId].forked});
-                    this.sendEvent(workerId+':spawned',{forks:this.workers[workerId].forked});
+
+                    setTimeout(()=> {
+                        this.debug('all forks has been forked, sending '+workerId+':spawned');
+                        this.sendEvent(workerId + ':spawned', {forks: this.workers[workerId].forked});
+                    },200);
+
+                    setTimeout(()=> {
+                        this.debug('all forks has been forked, sending master:spawned');
+                        this.sendEvent('master:spawned',{forks:this.workers[workerId].forked});
+                    },300);
                 }
             })
         });
@@ -314,7 +321,6 @@ class Evilcluster extends EventEmitter {
             cluster.fork();
             cluster.settings.args.pop();
         }
-
     }
 
     start(workers) {

@@ -1,26 +1,31 @@
-const tap = require('tap');
 const path = require('path');
 const cluster = require('cluster');
+const assert = require('assert');
 
 var testFile;
 
-var testOptions = {
-    bail:true,
-    timeout: 2000
+const msg = {
+    mainReceiveErrorEvent:'main: error event received',
+    mainReceiveSpawnedEvent:'main: spawned event received',
+    mainReceiveSpawnedEventControlEmitter:'main: spawned event emitter should match worker id',
+    mainReceiveSpawnedEventControlForksCount:'main: number of forks(s) should match worker settings',
+    mainReceiveReadyEvent:'main: ready event received',
+    mainReceiveCustomEvent:'main: custom event received',
+    spawnReceivedSpawnedEvent:'spawn: spawned event received',
+    spawnReceiveCustomEvent:'spawn: custom event received',
+    spawnReceiveForkedEvent:'spawn: fork event received'
 };
 
 function exit() {
-    //tap.test(testFile, testOptions, (t) => {
-        process.nextTick(() => {
-            let str = 'isMain=' + cluster.isMain+', ';
-            str+='isSpawn=' + cluster.isSpawn+', ';
-            str+='isFork=' + cluster.isFork;
-            str+='pid=' + process.pid;
-            //t.pass('exiting ('+str+')');
-            //t.end();
-            process.exit(0);
-        });
-    //});
+    process.nextTick(() => {
+        let str = 'isMain=' + cluster.isMain+', ';
+        str+='isSpawn=' + cluster.isSpawn+', ';
+        str+='isFork=' + cluster.isFork;
+        str+='pid=' + process.pid;
+        //t.pass('exiting ('+str+')');
+        //t.end();
+        process.exit(0);
+    });
 }
 
 function waitAndExit(delay) {
@@ -28,38 +33,32 @@ function waitAndExit(delay) {
 }
 
 function onErrorUnexpected(ev, error) {
-    tap.test(testFile, testOptions, (t) => {
-        t.fail('error event received by the master', error);
-        t.bailout(error);
-    });
+    console.log(msg.mainReceiveErrorEvent);
+    process.exit();
 }
 
 function onReadyExpected(ev, data) {
-    tap.test(testFile, testOptions, (t) => {
-        t.pass('ready event received by the master');
-        t.end();
-        exit();
-    });
+    assert.equal(cluster.isMaster, true);
+    assert.equal(cluster.isSpawn, false);
+    assert.equal(cluster.isFork, false);
+    console.log(msg.mainReceiveReadyEvent);
+    exit();
 }
 
 function onReadyExpectedNoExit(ev, data) {
-    /*
-    tap.test(testFile, testOptions, (t) => {
-        t.pass('ready event received by the master');
-        t.end();
-    });
-    */
+    console.log(msg.mainReceiveReadyEvent);
+    // don't exit
 }
 
 module.exports = function(testFileName) {
     testFile = path.basename(testFileName);
     return {
-        testOptions:testOptions,
         me:testFile,
         onReadyExpected:onReadyExpected,
         onReadyExpectedNoExit:onReadyExpectedNoExit,
         onErrorUnexpected:onErrorUnexpected,
         exit:exit,
         waitAndExit:waitAndExit,
+        msg:msg
     }
 };

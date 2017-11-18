@@ -1,7 +1,6 @@
 const ec = new (require('../'))(__filename);
 const path = require('path');
 const cluster = require('cluster');
-const tap = require('tap');
 const common = require('./common')(__filename);
 
 let workers = {
@@ -10,26 +9,34 @@ let workers = {
     }
 };
 
-function onReady(ev, data) {
-    tap.test(common.me, common.testOptions, (t) => {
-        t.pass('ready event received by the master');
-        t.end();
-        common.exit();
-    });
+if (require.main === module) {
+
+    if (cluster.isMain) {
+
+        function onReady(ev, data) {
+            // should be never fired
+            console.log(common.msg.mainReceiveReadyEvent);
+        }
+
+        function onError(ev, data) {
+            console.log(common.msg.mainReceiveErrorEvent);
+            process.exit();
+        }
+
+        ec.onEvent('ready', onReady);
+        ec.onEvent('error', onError);
+    }
+
+    ec.start(workers);
+    common.waitAndExit(400);
+
+} else {
+
+    module.exports = {
+        expected:{
+            stdout:[common.msg.mainReceiveErrorEvent]
+        }
+    };
+
 }
 
-function onError(ev, data) {
-    tap.test(common.me, common.testOptions, (t) => {
-        t.pass('error event received by the master');
-        t.end();
-        common.exit();
-    });
-}
-
-if (cluster.isMain) {
-    ec.onEvent('ready', onReady);
-    ec.onEvent('error', onError);
-}
-
-
-ec.start(workers);

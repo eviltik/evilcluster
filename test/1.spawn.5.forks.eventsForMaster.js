@@ -1,7 +1,6 @@
 const ec = new (require('../'))(__filename, 'workers/');
-const path = require('path');
 const cluster = require('cluster');
-const tap = require('tap');
+const assert = require('assert');
 const common = require('./common')(__filename);
 
 let workers = {
@@ -10,54 +9,77 @@ let workers = {
     }
 };
 
-common.testOptions.timeout = 3000;
+if (require.main === module) {
 
-function onSpawned(ev, data) {
-    tap.test(common.me, common.testOptions, (t) => {
-        t.pass('spawned event received by the master');
+    function onSpawned(ev, data) {
+        console.log(common.msg.mainReceiveSpawnedEvent);
 
-        t.equal(
-            data._emitter,
-            'testWorkerEvents',
-            'spawned event emitter should be worker id'
-        );
+        assert.equal(data._emitter, 'testWorkerEvents');
+        console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
-        t.equal(
-            data.forks,
-            workers.testWorkerEvents.maxForks,
-            'number of fork should be equal to '+workers.testWorkerEvents.maxForks
-        );
+        assert.equal(data.forks, workers[data._emitter].maxForks);
+        console.log(common.msg.mainReceiveSpawnedEventControlForksCount);
+    }
 
-        t.end();
-    });
+    if (cluster.isMain) {
+        ec.onEvent('ready', common.onReadyExpectedNoExit);
+        ec.onEvent('error', common.onErrorUnexpected);
+        ec.onEvent('spawned', onSpawned);
+
+        var mainReceivedMyEventToMaster = 0;
+
+        ec.onEvent('myEventToMaster', () => {
+            mainReceivedMyEventToMaster++;
+        });
+
+        /*
+        tap.test(common.me, common.testOptions, (t) => {
+            setTimeout(()=> {
+                // maxForks +1 because the spawned process send the event too
+                t.equal(
+                    mainReceivedMyEventToMaster,
+                    workers.testWorkerEvents.maxForks + 1,
+                    'event received by main process should be equal to ' + (workers.testWorkerEvents.maxForks + 1)
+                );
+                t.end();
+                common.waitAndExit(200);
+            }, 2000);
+        });
+        */
+
+    }
+
+    if (cluster.isSpawn) {
+
+        ec.onEvent('spawned', () => {
+            console.log(common.msg.spawnReceivedSpawnedEvent);
+        });
+
+        ec.onEvent('forked',() => {
+            console.log(common.msg.spawnReceiveForkedEvent);
+        })
+    }
+
+    ec.start(workers);
+    common.waitAndExit(2000);
+
+} else {
+
+    module.exports = {
+        expected:{
+            stdout:[
+                common.msg.spawnReceiveForkedEvent,
+                common.msg.spawnReceiveForkedEvent,
+                common.msg.spawnReceiveForkedEvent,
+                common.msg.spawnReceiveForkedEvent,
+                common.msg.spawnReceiveForkedEvent,
+                common.msg.spawnReceivedSpawnedEvent,
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.mainReceiveReadyEvent
+            ]
+        }
+    };
+
 }
-
-if (cluster.isMain) {
-    ec.onEvent('ready', common.onReadyExpectedNoExit);
-    ec.onEvent('error', common.onErrorUnexpected);
-    ec.onEvent('spawned', onSpawned);
-
-    var mainReceivedMyEventToMaster = 0;
-
-    ec.onEvent('myEventToMaster', () => {
-        mainReceivedMyEventToMaster++;
-    });
-
-    tap.test(common.me, common.testOptions, (t) => {
-        setTimeout(()=> {
-            // maxForks +1 because the spawned process send the event too
-            t.equal(
-                mainReceivedMyEventToMaster,
-                workers.testWorkerEvents.maxForks+1,
-                'event received by main process should be equal to '+(workers.testWorkerEvents.maxForks+1)
-            );
-            t.end();
-            common.waitAndExit(200);
-        },2000);
-    });
-
-}
-
-
-ec.start(workers);
-cluster.ec = ec;
