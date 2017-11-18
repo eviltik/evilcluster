@@ -33,11 +33,11 @@ if (require.main === module) {
     if (cluster.isSpawn) {
 
         ec.onEvent('spawned', () => {
-            console.log(common.msg.spawnReceivedSpawnedEvent);
+            console.log(common.msg.spawnReceivedSpawnedEvent+' ('+cluster.cid+')');
         });
 
         ec.onEvent('forked',() => {
-            console.log(common.msg.spawnReceiveForkedEvent);
+            console.log(common.msg.spawnReceiveForkedEvent+' ('+cluster.cid+')');
         });
     }
 
@@ -49,21 +49,21 @@ if (require.main === module) {
     module.exports = {
         expected:{
             stdout:[
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceivedSpawnedEvent,
-                common.msg.spawnReceivedSpawnedEvent,
+                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
+                common.msg.spawnReceivedSpawnedEvent+' (testWorker1)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
+                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
+                common.msg.spawnReceivedSpawnedEvent+' (testWorker2)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
