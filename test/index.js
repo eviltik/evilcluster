@@ -16,11 +16,11 @@ function testsStart() {
 
         tap.test(test, {bail:true}, (t) => {
 
-            t.pass('requiring','./' + test);
+            t.pass('requiring ./' + test);
 
             let expected = require('./' + test).expected;
 
-            t.equal(typeof expected, 'object');
+            t.equal(typeof expected, 'object', 'expected should be an object');
 
             if (!expected.exitCode) expected.exitCode = 0;
             if (!expected.stderr) expected.stderr = [];
