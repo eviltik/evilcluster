@@ -60,6 +60,7 @@ class Evilcluster extends EventEmitter {
 
             cluster.isSpawn = false;
             cluster.isFork = true;
+            cluster.isLastFork = this.config.argz.forkNumber === this.config.argz.maxForks;
             cluster.isMain = false;
             cluster.forkNumber = this.config.argz.forkNumber;
             cluster.cid = this.config.argz.worker+':'+cluster.forkNumber;

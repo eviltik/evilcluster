@@ -13,7 +13,8 @@ const msg = {
     mainReceiveCustomEvent:'main: custom event received',
     spawnReceivedSpawnedEvent:'spawn: spawned event received',
     spawnReceiveCustomEvent:'spawn: custom event received',
-    spawnReceiveForkedEvent:'spawn: fork event received'
+    spawnReceiveForkedEvent:'spawn: fork event received',
+    forkIsLast:'fork: i am the last fork'
 };
 
 function exit() {
