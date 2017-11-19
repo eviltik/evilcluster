@@ -40,7 +40,7 @@ class Evilcluster extends EventEmitter {
 
         this.config.evileventsOptions.forkId = this.config.argz.worker||'master';
 
-        if (!this.isSpawned() && !this.isForked()) {
+        if (!this.isSpawn() && !this.isFork()) {
 
             cluster.isMain = true;
             cluster.isSpawn = false;
@@ -48,7 +48,7 @@ class Evilcluster extends EventEmitter {
             cluster.cid = 'main';
             process.on('exit', this.killSpawns.bind(this));
 
-        } else if (this.isSpawned()) {
+        } else if (this.isSpawn()) {
 
             cluster.forceClient = true;
             cluster.isSpawn = true;
@@ -56,7 +56,7 @@ class Evilcluster extends EventEmitter {
             cluster.isMain = false;
             cluster.cid = this.config.argz.worker;
 
-        } else if (this.isForked()) {
+        } else if (this.isFork()) {
 
             cluster.isSpawn = false;
             cluster.isFork = true;
@@ -102,11 +102,11 @@ class Evilcluster extends EventEmitter {
         */
     }
 
-    isSpawned() {
+    isSpawn() {
         return this.config.argz.worker && !this.config.argz.forkNumber;
     }
 
-    isForked() {
+    isFork() {
         return this.config.argz.forkNumber;
     }
 
