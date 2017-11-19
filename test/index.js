@@ -34,7 +34,7 @@ function testsStart() {
             let rlStdout = readline.createInterface({
                 input     : sub.stdout,
             }).on('line', (line) => {
-                console.log(line);
+                //console.log(line);
                 // ignore line when debug log
                 // when env var DEBUG is set
                 if (!line.match(/^[0-9]{4}\-/)) {
