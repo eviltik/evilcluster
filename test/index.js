@@ -2,8 +2,9 @@ const spawn = require('child_process').spawn;
 const async = require('async');
 const fs = require('fs');
 const tap = require('tap');
-const common = require('./common')(__filename);
 const readline = require('readline');
+
+process.setMaxListeners(0);
 
 let testPath = 'test/';
 let tests = fs.readdirSync(testPath);
