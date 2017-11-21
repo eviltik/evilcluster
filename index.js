@@ -321,6 +321,11 @@ class Evilcluster extends EventEmitter {
             return;
         }
 
+        this.onEvent("ready",() => {
+            // sent to all spawns and forks
+            this.sendEvent("clusterReady");
+        });
+
         async.series([
             (next) => {
                 this.ee.server.start(
@@ -335,11 +340,13 @@ class Evilcluster extends EventEmitter {
     }
 
     sendEvent(eventName, data) {
+
         if (data!=undefined) {
             this.debug('sendEvent %s %s', eventName, JSON.stringify(data));
         } else {
             this.debug('sendEvent %s', eventName);
         }
+
         if (cluster.isMain) {
             this.ee.server.send(eventName, data);
         } else {
