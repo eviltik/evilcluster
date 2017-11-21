@@ -4,7 +4,7 @@ const common = require('./common')(__filename);
 const assert = require('assert');
 
 let workers = {
-    testWorkerEvents:{
+    "worker-events":{
         maxForks:0
     }
 };
@@ -14,7 +14,7 @@ if (require.main === module) {
     function onSpawned(ev, data) {
         console.log(common.msg.mainReceiveSpawnedEvent);
 
-        assert.equal(data._emitter, 'testWorkerEvents');
+        assert.equal(data._emitter, "worker-events");
         console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
         assert.equal(data.forks, workers[data._emitter].maxForks);

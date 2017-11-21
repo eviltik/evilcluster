@@ -1,10 +1,9 @@
 const ec = new (require('../'))(__filename);
-const path = require('path');
 const cluster = require('cluster');
 const common = require('./common')(__filename);
 
 let workers = {
-    testWorker1:{
+    "bla":{
         maxForks:0
     }
 };

@@ -4,10 +4,10 @@ const assert = require('assert');
 const common = require('./common')(__filename);
 
 let workers = {
-    testWorker1:{
+    "worker1":{
         maxForks:5
     },
-    testWorker2:{
+    "worker2":{
         maxForks:5
     }
 };
@@ -20,7 +20,7 @@ if (require.main === module) {
         assert.equal(typeof workers[data._emitter], 'object');
         console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
-        assert.equal(data.forks, workers.testWorker1.maxForks);
+        assert.equal(data.forks, workers[data._emitter].maxForks);
         console.log(common.msg.mainReceiveSpawnedEventControlForksCount);
     }
 
@@ -49,21 +49,21 @@ if (require.main === module) {
     module.exports = {
         expected:{
             stdout:[
-                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker1)',
-                common.msg.spawnReceivedSpawnedEvent+' (testWorker1)',
+                common.msg.spawnReceiveForkedEvent+' (worker1)',
+                common.msg.spawnReceiveForkedEvent+' (worker1)',
+                common.msg.spawnReceiveForkedEvent+' (worker1)',
+                common.msg.spawnReceiveForkedEvent+' (worker1)',
+                common.msg.spawnReceiveForkedEvent+' (worker1)',
+                common.msg.spawnReceivedSpawnedEvent+' (worker1)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
-                common.msg.spawnReceiveForkedEvent+' (testWorker2)',
-                common.msg.spawnReceivedSpawnedEvent+' (testWorker2)',
+                common.msg.spawnReceiveForkedEvent+' (worker2)',
+                common.msg.spawnReceiveForkedEvent+' (worker2)',
+                common.msg.spawnReceiveForkedEvent+' (worker2)',
+                common.msg.spawnReceiveForkedEvent+' (worker2)',
+                common.msg.spawnReceiveForkedEvent+' (worker2)',
+                common.msg.spawnReceivedSpawnedEvent+' (worker2)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,

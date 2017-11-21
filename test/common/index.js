@@ -35,6 +35,7 @@ function waitAndExit(delay) {
 
 function onErrorUnexpected(ev, error) {
     console.log(msg.mainReceiveErrorEvent);
+    console.log(error);
     process.exit();
 }
 

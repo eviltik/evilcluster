@@ -4,8 +4,11 @@ const assert = require('assert');
 const common = require('./common')(__filename);
 
 let workers = {
-    "worker-events":{
-        maxForks:5
+    "worker1a":{
+        maxForks:2
+    },
+    "worker2a":{
+        maxForks:2
     }
 };
 
@@ -14,7 +17,7 @@ if (require.main === module) {
     function onSpawned(ev, data) {
         console.log(common.msg.mainReceiveSpawnedEvent);
 
-        assert.equal(data._emitter, "worker-events");
+        assert.equal(typeof workers[data._emitter], 'object');
         console.log(common.msg.mainReceiveSpawnedEventControlEmitter);
 
         assert.equal(data.forks, workers[data._emitter].maxForks);
@@ -25,24 +28,17 @@ if (require.main === module) {
         ec.onEvent('ready', common.onReadyExpectedNoExit);
         ec.onEvent('error', common.onErrorUnexpected);
         ec.onEvent('spawned', onSpawned);
-
-        var mainReceivedMyEventToMaster = 0;
-
-        ec.onEvent('myEventToMaster', () => {
-            mainReceivedMyEventToMaster++;
-        });
-
     }
 
     if (cluster.isSpawn) {
 
         ec.onEvent('spawned', () => {
-            console.log(common.msg.spawnReceivedSpawnedEvent);
+            console.log(common.msg.spawnReceivedSpawnedEvent+' ('+cluster.cid+')');
         });
 
         ec.onEvent('forked',() => {
-            console.log(common.msg.spawnReceiveForkedEvent);
-        })
+            console.log(common.msg.spawnReceiveForkedEvent+' ('+cluster.cid+')');
+        });
     }
 
     ec.start(workers);
@@ -53,16 +49,23 @@ if (require.main === module) {
     module.exports = {
         expected:{
             stdout:[
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceiveForkedEvent,
-                common.msg.spawnReceivedSpawnedEvent,
+                common.msg.spawnReceiveForkedEvent+' (worker1a)',
+                common.msg.spawnReceiveForkedEvent+' (worker1a)',
+                common.msg.spawnReceivedSpawnedEvent+' (worker1a)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.mainReceiveReadyEvent
+                common.msg.spawnReceiveForkedEvent+' (worker2a)',
+                common.msg.spawnReceiveForkedEvent+' (worker2a)',
+                common.msg.spawnReceivedSpawnedEvent+' (worker2a)',
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.mainReceiveReadyEvent,
+                'spawn: cluster is ready (worker1a)',
+                'spawn: cluster is ready (worker2a)',
+                'spawn: test event received (worker2a)',
+                'spawn: test event received (worker1a)'
             ]
         }
     };
