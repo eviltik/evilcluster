@@ -64,6 +64,7 @@ class Evilcluster extends EventEmitter {
             cluster.isMain = false;
             cluster.forkNumber = this.config.argz.forkNumber;
             cluster.cid = this.config.argz.worker+':'+cluster.forkNumber;
+
             this.config.evileventsOptions.forkId = this.config.argz.worker+'#'+cluster.forkNumber;
 
         }
@@ -317,6 +318,9 @@ class Evilcluster extends EventEmitter {
         this.workers = JSON.parse(JSON.stringify(workers));
 
         if (cluster.isSpawn || cluster.isFork) {
+
+            cluster.options = this.workers[this.config.argz.worker].options || {};
+
             this.spawnFork();
             return;
         }
