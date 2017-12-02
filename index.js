@@ -38,6 +38,14 @@ class Evilcluster extends EventEmitter {
             verbose:false
         };
 
+        if (process.env.EE_PORT_TO_MASTER) {
+            this.config.evileventsOptions.tcpPortToMaster = process.env.EE_PORT_TO_MASTER;
+        }
+
+        if (process.env.EE_PORT_FROM_MASTER) {
+            this.config.evileventsOptions.tcpPortFromMaster = process.env.EE_PORT_FROM_MASTER;
+        }
+
         this.config.evileventsOptions.forkId = this.config.argz.worker||'master';
 
         if (!this.isSpawn() && !this.isFork()) {
