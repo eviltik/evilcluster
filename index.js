@@ -82,9 +82,13 @@ class Evilcluster extends EventEmitter {
 
         this.ee = require('evilevents');
         cluster.ec = this;
+
+        cluster.onEvent = this.onEvent.bind(this);
+        cluster.sendEvent = this.sendEvent.bind(this);
     }
 
     onEvent(eventName, fnc) {
+
         this.debug('onEvent',eventName);
 
         this.ee.on(eventName, (eventName, data) => {
@@ -351,12 +355,11 @@ class Evilcluster extends EventEmitter {
         ]);
     }
 
-    sendEvent(eventName, data) {
-
+    sendEvilEvent(eventName, data) {
         if (data!=undefined) {
-            this.debug('sendEvent %s %s', eventName, JSON.stringify(data));
+            this.debug('sendEvilEvent %s %s', eventName, JSON.stringify(data));
         } else {
-            this.debug('sendEvent %s', eventName);
+            this.debug('sendEvilEvent %s', eventName);
         }
 
         if (cluster.isMain) {
@@ -364,6 +367,28 @@ class Evilcluster extends EventEmitter {
         } else {
             this.ee.client.send(eventName, data);
         }
+    }
+
+    sendEvent(eventName, data) {
+
+        if (eventName.match(/:/) && !eventName.match(/#/)) {
+            let tmp = eventName.split(':');
+            let workerId = tmp[0];
+            let evName = tmp[1];
+            if (evName!='forked' && evName != 'spawned' && evName != 'ready' && evName != 'error') {
+                if (this.workers && this.workers[workerId] && this.workers[workerId].maxForks) {
+                    for (let i=1;i<=this.workers[workerId].maxForks;i++) {
+                        this.sendEvilEvent(workerId+'#'+i+':'+evName, data);
+                    }
+                } else {
+                    console.log('evilcluster error: trying to send event %s to an unexisting worker %s', eventName, workerId);
+                }
+                return;
+            }
+        }
+
+        this.sendEvilEvent(eventName, data);
+
     }
 
 }
