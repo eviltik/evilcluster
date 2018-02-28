@@ -377,14 +377,17 @@ class Evilcluster extends EventEmitter {
             let evName = tmp[1];
 
             if (this.workers && this.workers[workerId] && this.workers[workerId].maxForks) {
+                // send to forks
                 for (let i=1;i<=this.workers[workerId].maxForks;i++) {
                     this.sendEvilEvent(workerId+'#'+i+':'+evName, data);
                 }
+                // send to spawned
+                this.sendEvilEvent(eventName, data);
             } else {
                 console.log('evilcluster error: trying to send event %s to an unexisting worker %s', eventName, workerId);
             }
             return;
-            
+
         }
 
         this.sendEvilEvent(eventName, data);
