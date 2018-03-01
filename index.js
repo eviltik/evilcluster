@@ -383,8 +383,6 @@ class Evilcluster extends EventEmitter {
 
     sendEvent(eventName, data) {
 
-        return this.sendEvilEvent(eventName, data);
-
         if (eventName.match(/ec\./)) {
             return this.sendEvilEvent(eventName, data);
         }
@@ -394,6 +392,10 @@ class Evilcluster extends EventEmitter {
         }
 
         if (!eventName.match(/:/)) {
+            return this.sendEvilEvent(eventName, data);
+        }
+
+        if (eventName.match(/^master:/)) {
             return this.sendEvilEvent(eventName, data);
         }
 
