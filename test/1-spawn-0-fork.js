@@ -22,13 +22,13 @@ if (require.main === module) {
     }
 
     if (cluster.isMain) {
-        ec.onEvent('ready', common.onReadyExpected);
-        ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawn);
+        cluster.onEvent(ec.EV_READY, common.onReadyExpected);
+        cluster.onEvent(ec.EV_ERROR, common.onErrorUnexpected);
+        cluster.onEvent(ec.EV_SPAWNED, onSpawn);
     }
 
     if (cluster.isSpawn) {
-        ec.onEvent('spawned', () => {
+        cluster.onEvent(ec.EV_SPAWNED, () => {
             console.log(common.msg.spawnReceivedSpawnedEvent);
         });
     }

@@ -22,12 +22,12 @@ if (require.main === module) {
     }
 
     if (cluster.isMain) {
-        ec.onEvent('ready', common.onReadyExpectedNoExit);
-        ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawned);
+        cluster.onEvent(ec.EV_READY, common.onReadyExpectedNoExit);
+        cluster.onEvent(ec.EV_ERROR, common.onErrorUnexpected);
+        cluster.onEvent(ec.EV_SPAWNED, onSpawned);
     }
 
-    ec.onEvent('spawnToMasterOnly', () => {
+    cluster.onEvent('spawnToMasterOnly', () => {
         assert.equal(cluster.isMain,true);
         assert.equal(cluster.isSpawn,false);
         assert.equal(cluster.isFork,false);

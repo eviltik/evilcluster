@@ -22,19 +22,19 @@ if (require.main === module) {
     }
 
     if (cluster.isMain) {
-        ec.onEvent('ready', common.onReadyExpectedNoExit);
-        ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawned);
+        cluster.onEvent(ec.EV_READY, common.onReadyExpectedNoExit);
+        cluster.onEvent(ec.EV_ERROR, common.onErrorUnexpected);
+        cluster.onEvent(ec.EV_SPAWNED, onSpawned);
     }
 
-    ec.onEvent('spawnToMasterOnly', () => {
+    cluster.onEvent('spawnToMasterOnly', () => {
         assert.equal(cluster.isMain,true);
         assert.equal(cluster.isSpawn,false);
         assert.equal(cluster.isFork,false);
         console.log(common.msg.mainReceiveCustomEvent);
     });
 
-    ec.onEvent('spawnToBothMasterAndSpawn', () => {
+    cluster.onEvent('spawnToBothMasterAndSpawn', () => {
         assert.equal(cluster.isFork,false);
         if (cluster.isSpawn) {
             console.log(common.msg.spawnReceiveCustomEvent);
@@ -44,7 +44,7 @@ if (require.main === module) {
     });
 
     ec.start(workers);
-    common.waitAndExit(400);
+    common.waitAndExit(1000);
 
 } else {
 

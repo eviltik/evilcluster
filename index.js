@@ -8,6 +8,16 @@ class Evilcluster extends EventEmitter {
 
     constructor(mainFile, workersDir) {
         super();
+
+        this.EV_FORKED = 'ec.forked';
+        this.EV_SPAWNED = 'ec.spawned';
+        this.EV_ERROR = 'ec.error';
+        this.EV_READY = 'ec.ready';
+        this.EV_CLUSTER_READY = 'clusterReady';
+
+        cluster.onEvent = this.onEvent.bind(this);
+        cluster.sendEvent = this.sendEvent.bind(this);
+
         this.config = {
             argz: require('minimist')(process.argv.slice(2)),
             mainFile: mainFile,
@@ -48,6 +58,8 @@ class Evilcluster extends EventEmitter {
 
         this.config.evileventsOptions.forkId = this.config.argz.worker||'master';
 
+        cluster.isLastFork = false;
+
         if (!this.isSpawn() && !this.isFork()) {
 
             cluster.isMain = true;
@@ -77,14 +89,13 @@ class Evilcluster extends EventEmitter {
 
         }
 
+        //console.log('init', cluster.cid, 'isSpawn',this.isSpawn(), 'isFork',this.isFork(), 'isLastFork',cluster. isLastFork);
         this.debug = require('debug')('evilcluster:'+cluster.cid);
         this.debug('argz',this.config.argz);
 
         this.ee = require('evilevents');
         cluster.ec = this;
 
-        cluster.onEvent = this.onEvent.bind(this);
-        cluster.sendEvent = this.sendEvent.bind(this);
     }
 
     onEvent(eventName, fnc) {
@@ -106,7 +117,8 @@ class Evilcluster extends EventEmitter {
     }
 
     isFork() {
-        return this.config.argz.forkNumber;
+        if (parseInt(this.config.argz.forkNumber)) return true;
+        return false;
     }
 
     runCode(callback) {
@@ -123,7 +135,7 @@ class Evilcluster extends EventEmitter {
                 this.debug('runCode require', file);
                 require(file);
             } catch(e) {
-                this.sendEvent('error',e.stack);
+                this.sendEvent(this.EV_ERROR, e.stack);
                 process.exit(1);
             }
 
@@ -204,6 +216,7 @@ class Evilcluster extends EventEmitter {
         );
 
         wk.spawn = spawn(this.config.binPath, args, this.config.spawnOptions);
+
         wk.spawn.id = workerId;
 
         wk.spawn.on('close', function (exitCode) {
@@ -223,10 +236,10 @@ class Evilcluster extends EventEmitter {
 
         this.spawned = 0;
 
-        this.onEvent('spawned', (ev, data) => {
+        this.onEvent(this.EV_SPAWNED, (ev, data) => {
             this.spawned++;
             if (this.spawned === Object.keys(this.workers).length) {
-                this.sendEvent('master:ready');
+                this.sendEvent('master:'+this.EV_READY);
             } else {
                 // spawn next worker
                 this.spawnWorker(Object.keys(this.workers)[this.spawned]);
@@ -269,8 +282,8 @@ class Evilcluster extends EventEmitter {
             this.runCode(()=>{
                 process.nextTick(()=>{
                     // send event to spawned master process (not the main process)
-                    this.debug('forked, sending %s', workerId+':forked');
-                    this.sendEvent(workerId+':forked',{forkNumber:cluster.forkNumber});
+                    this.debug('forked, sending %s', workerId+':'+this.EV_FORKED);
+                    this.sendEvent(workerId+':'+this.EV_FORKED,{forkNumber:cluster.forkNumber});
                 });
             });
             return;
@@ -280,10 +293,10 @@ class Evilcluster extends EventEmitter {
             this.runCode(()=> {
                 // worker has no forks, spawn is ready
                 process.nextTick(()=> {
-                    this.debug('no forks required, sending master:spawned');
-                    this.sendEvent('master:spawned', {forks:0});
+                    this.debug('no forks required, sending master:'+this.EV_SPAWNED);
+                    this.sendEvent('master:' + this.EV_SPAWNED, {forks:0});
                 });
-                this.sendEvent(workerId+':spawned',{forks:0});
+                this.sendEvent(workerId + ':' + this.EV_SPAWNED,{forks:0});
             });
             return;
         }
@@ -295,34 +308,34 @@ class Evilcluster extends EventEmitter {
             // worker has forks, wait for all forks to be ready
             this.workers[workerId].forked = 0;
 
-
-            this.onEvent('spawned', () => {
-                setTimeout(() => {
-                    this.debug('all forks has been forked, sending master:spawned');
-                    this.sendEvent('master:spawned', {forks: this.workers[workerId].forked});
-                },200);
+            this.onEvent(this.EV_SPAWNED, () => {
+                //setTimeout(() => {
+                    this.debug('all forks has been forked, sending master:'+this.EV_SPAWNED);
+                    this.sendEvent('master:' + this.EV_SPAWNED, {forks: this.workers[workerId].forked});
+                //},0);
             });
 
-            this.onEvent('forked',(ev, data) => {
+            this.onEvent(this.EV_FORKED,(ev, data) => {
                 this.workers[workerId].forked++;
                 if (this.workers[workerId].forked == this.config.argz.maxForks) {
-                    this.debug('all forks has been forked, sending '+workerId+':spawned');
-                    this.sendEvent(workerId + ':spawned', {forks: this.workers[workerId].forked});
+                    this.debug('all forks has been forked, sending '+workerId+':'+this.EV_SPAWNED);
+                    this.sendEvent(workerId + ':' + this.EV_SPAWNED, {forks: this.workers[workerId].forked});
                 }
             })
-        });
 
-        cluster.setupMaster({
-            args: this.config.clusterArgs,
-            silent: false
-        });
+            cluster.setupMaster({
+                args: this.config.clusterArgs,
+                silent: false
+            });
 
-        for (let i = 0; i<maxForks; i++) {
-            cluster.settings.args.push('--forkNumber='+(i+1));
-            this.debug('forking',JSON.stringify(cluster.settings));
-            cluster.fork();
-            cluster.settings.args.pop();
-        }
+            for (let i = 0; i<maxForks; i++) {
+                cluster.settings.args.push('--forkNumber='+(i+1));
+                this.debug('forking',JSON.stringify(cluster.settings));
+                cluster.fork();
+                cluster.settings.args.pop();
+            }
+
+        });
     }
 
     start(workers) {
@@ -330,16 +343,14 @@ class Evilcluster extends EventEmitter {
         this.workers = JSON.parse(JSON.stringify(workers));
 
         if (cluster.isSpawn || cluster.isFork) {
-
             cluster.options = this.workers[this.config.argz.worker].options || {};
-
             this.spawnFork();
             return;
         }
 
-        this.onEvent("ready",() => {
+        this.onEvent(this.EV_READY,() => {
             // sent to all spawns and forks
-            this.sendEvent("clusterReady");
+            this.sendEvent(this.EV_CLUSTER_READY);
         });
 
         async.series([
@@ -356,6 +367,7 @@ class Evilcluster extends EventEmitter {
     }
 
     sendEvilEvent(eventName, data) {
+
         if (data!=undefined) {
             this.debug('sendEvilEvent %s %s', eventName, JSON.stringify(data));
         } else {
@@ -371,26 +383,36 @@ class Evilcluster extends EventEmitter {
 
     sendEvent(eventName, data) {
 
-        if (eventName.match(/:/) && !eventName.match(/#/)) {
-            let tmp = eventName.split(':');
-            let workerId = tmp[0];
-            let evName = tmp[1];
+        return this.sendEvilEvent(eventName, data);
 
-            if (this.workers && this.workers[workerId] && this.workers[workerId].maxForks) {
+        if (eventName.match(/ec\./)) {
+            return this.sendEvilEvent(eventName, data);
+        }
+
+        if (eventName.match(/\#/)) {
+            return this.sendEvilEvent(eventName, data);
+        }
+
+        if (!eventName.match(/:/)) {
+            return this.sendEvilEvent(eventName, data);
+        }
+
+        let tmp = eventName.split(':');
+        let workerId = tmp[0];
+        let evName = tmp[1];
+
+        if (this.workers && this.workers[workerId]) {
+            if (this.workers[workerId].maxForks) {
                 // send to forks
                 for (let i=1;i<=this.workers[workerId].maxForks;i++) {
                     this.sendEvilEvent(workerId+'#'+i+':'+evName, data);
                 }
-                // send to spawned
-                this.sendEvilEvent(eventName, data);
-            } else {
-                console.log('evilcluster error: trying to send event %s to an unexisting worker %s', eventName, workerId);
             }
-            return;
-
+            // send to spawned
+            this.sendEvilEvent(eventName, data);
+        } else {
+            console.log('evilcluster error: trying to send event %s to an unexisting worker %s', eventName, workerId);
         }
-
-        this.sendEvilEvent(eventName, data);
 
     }
 

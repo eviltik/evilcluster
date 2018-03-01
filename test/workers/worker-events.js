@@ -1,9 +1,10 @@
 const cluster = require('cluster');
 
-setTimeout(()=>{
+cluster.onEvent('clusterReady', () => {
+    cluster.sendEvent('master:spawnToMasterOnly');
+    cluster.sendEvent('spawnToBothMasterAndSpawn');
+});
 
-    cluster.ec.sendEvent('master:spawnToMasterOnly');
-    cluster.ec.sendEvent('spawnToBothMasterAndSpawn');
-
-},100);
-
+setTimeout(() => {
+    process.exit();
+}, 5000);

@@ -25,18 +25,18 @@ if (require.main === module) {
     }
 
     if (cluster.isMain) {
-        ec.onEvent('ready', common.onReadyExpectedNoExit);
-        ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawned);
+        cluster.onEvent(ec.EV_READY, common.onReadyExpectedNoExit);
+        cluster.onEvent(ec.EV_ERROR, common.onErrorUnexpected);
+        cluster.onEvent(ec.EV_SPAWNED, onSpawned);
     }
 
     if (cluster.isSpawn) {
 
-        ec.onEvent('spawned', () => {
+        cluster.onEvent(ec.EV_SPAWNED, () => {
             console.log(common.msg.spawnReceivedSpawnedEvent+' ('+cluster.cid+')');
         });
 
-        ec.onEvent('forked',() => {
+        cluster.onEvent(ec.EV_FORKED,() => {
             console.log(common.msg.spawnReceiveForkedEvent+' ('+cluster.cid+')');
         });
     }

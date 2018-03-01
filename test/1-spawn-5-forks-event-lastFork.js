@@ -22,20 +22,20 @@ if (require.main === module) {
     }
 
     if (cluster.isMain) {
-        ec.onEvent('ready', common.onReadyExpectedNoExit);
-        ec.onEvent('error', common.onErrorUnexpected);
-        ec.onEvent('spawned', onSpawned);
+        cluster.onEvent(ec.EV_READY, common.onReadyExpectedNoExit);
+        cluster.onEvent(ec.EV_ERROR, common.onErrorUnexpected);
+        cluster.onEvent(ec.EV_SPAWNED, onSpawned);
     }
 
     if (cluster.isSpawn) {
+        cluster.onEvent(ec.EV_FORKED,(ev, data) => {
+            console.log(common.msg.spawnReceiveForkedEvent);
+        });
 
-        ec.onEvent('spawned', () => {
+        cluster.onEvent(ec.EV_SPAWNED,(ev, data) => {
             console.log(common.msg.spawnReceivedSpawnedEvent);
         });
 
-        ec.onEvent('forked',() => {
-            console.log(common.msg.spawnReceiveForkedEvent);
-        });
     }
 
     if (cluster.isFork && cluster.isLastFork) {
@@ -43,7 +43,7 @@ if (require.main === module) {
         // only needed for tests
         setTimeout(()=> {
             console.log(common.msg.forkIsLast);
-        },600);
+        }, 500);
     }
 
     ec.start(workers);

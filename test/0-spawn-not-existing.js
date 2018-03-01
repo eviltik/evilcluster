@@ -21,9 +21,9 @@ if (require.main === module) {
             console.log(common.msg.mainReceiveErrorEvent);
             process.exit();
         }
-
-        ec.onEvent('ready', onReady);
-        ec.onEvent('error', onError);
+        
+        cluster.onEvent(ec.EV_READY, onReady);
+        cluster.onEvent(ec.EV_ERROR, onError);
     }
 
     ec.start(workers);
@@ -38,4 +38,3 @@ if (require.main === module) {
     };
 
 }
-

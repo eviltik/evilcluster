@@ -2,4 +2,4 @@
 
 setTimeout(function() {
     // do nothing
-},200);
+},1000);
