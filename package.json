@@ -23,9 +23,10 @@
     "async": "2.6.0",
     "debug": "3.1.0",
     "evilevents": "2.0.3",
+    "evillogger": "1.0.2",
     "minimist": "1.2.0"
   },
   "devDependencies": {
-    "tap": "10.7.3"
+    "tap": "11.1.1"
   }
 }
