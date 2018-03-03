@@ -183,14 +183,22 @@ class Evilcluster extends EventEmitter {
 
         let wk = this.workers[workerId];
 
-        let args = [
-            this.config.mainFile,
-            '--worker='+workerId
-        ];
+        let args = [];
+
+        process.execArgv.forEach((arg) => {
+            args.push(arg);
+        })
+
+        args.push(this.config.mainFile);
+        args.push('--worker='+workerId);
 
         if (wk.maxForks) {
             args.push('--maxForks='+(wk.maxForks));
         }
+
+        process.argv.forEach((arg) => {
+            if (arg.match(/^\-\-/)) args.push(arg);
+        })
 
         if (!wk.respawnInterval) {
             wk.respawnInterval = 1000;
