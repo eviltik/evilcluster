@@ -14,7 +14,7 @@ function testsStart() {
         if (!test.match(/^[0-9]/)) return next();
         i++;
 
-        //if (i!=10) return next();
+        //if (i!=11) return next();
 
         tap.test(test, {bail:true}, (t) => {
 
@@ -40,7 +40,9 @@ function testsStart() {
                 // ignore line when debug log
                 // when env var DEBUG is set
                 if (!line.match(/^[0-9]{4}\-/)) {
+                    let expectedLine = expected.stdout[stdout.length];
                     stdout.push(line);
+                    t.same(line, expectedLine, 'stdout line '+(stdout.length)+' should be "'+expectedLine+'"');
                 }
             });
 
@@ -49,7 +51,9 @@ function testsStart() {
             }).on('line', (line) => {
                 console.log('stderr', line);
                 if (!line.match(/^[0-9]{4}\-/)) {
+                    let expectedLine = expected.stderr[stderr.length];
                     stderr.push(line);
+                    t.same(line, expectedLine, 'stderr line '+(stderr.length)+' should be "'+expectedLine+'"');
                 }
             });
 
@@ -57,14 +61,6 @@ function testsStart() {
                 t.same(code, expected.exitCode, 'exit code should be '+expected.exitCode);
                 t.same(stderr.length, expected.stderr.length, 'stderr line count should match '+expected.stderr.length);
                 //t.same(stdout.length, expected.stdout.length, 'stdout line count should match '+expected.stdout.length);
-
-                expected.stderr.forEach((line, idx) => {
-                    t.same(stderr[idx], line, 'stderr line '+(idx+1)+' should be "'+line+'"');
-                });
-
-                expected.stdout.forEach((line, idx) => {
-                    t.same(stdout[idx], line, 'stdout line '+(idx+1)+' should be "'+line+'"');
-                });
 
                 t.end();
                 rlStdout.close();

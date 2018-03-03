@@ -11,6 +11,10 @@ const msg = {
     mainReceiveSpawnedEventControlForksCount:'main: number of forks(s) should match worker settings',
     mainReceiveReadyEvent:'main: ready event received',
     mainReceiveCustomEvent:'main: custom event received',
+    mainReceiveSpawnExitNormalyEvent:'main: spawn exit normaly event received',
+    mainReceiveSpawnExitErrorEvent:'main: spawn exit error event received',
+    mainReceiveForkExitNormalyEvent:'main: fork exit normaly event received',
+    mainReceiveForkExitErrorEvent:'main: fork exit with error event received',
     spawnReceivedSpawnedEvent:'spawn: spawned event received',
     spawnReceiveCustomEvent:'spawn: custom event received',
     spawnReceiveForkedEvent:'spawn: fork event received',
@@ -39,6 +43,11 @@ function onErrorUnexpected(ev, error) {
     process.exit();
 }
 
+function onErrorUnexpectedNoExit(ev, error) {
+    console.log(msg.mainReceiveErrorEvent);
+    //console.log('*** ERROR:',error.split('\n')[0].trim());
+}
+
 function onReadyExpected(ev, data) {
     assert.equal(cluster.isMaster, true);
     assert.equal(cluster.isSpawn, false);
@@ -52,6 +61,23 @@ function onReadyExpectedNoExit(ev, data) {
     // don't exit
 }
 
+function onSpawnExitNormaly(ev, data) {
+    console.log(msg.mainReceiveSpawnExitNormalyEvent);
+    exit();
+}
+
+function onSpawnExitErrorNoExit(ev, data) {
+    console.log(msg.mainReceiveSpawnExitErrorEvent);
+}
+
+function onForkExitNormalyNoExit(ev, data) {
+    console.log(msg.mainReceiveForkExitNormalyEvent);
+}
+
+function onForkExitErrorNoExit(ev, data) {
+    console.log(msg.mainReceiveForkExitErrorEvent);
+}
+
 module.exports = function(testFileName) {
     testFile = path.basename(testFileName);
     return {
@@ -59,6 +85,11 @@ module.exports = function(testFileName) {
         onReadyExpected:onReadyExpected,
         onReadyExpectedNoExit:onReadyExpectedNoExit,
         onErrorUnexpected:onErrorUnexpected,
+        onErrorUnexpectedNoExit:onErrorUnexpectedNoExit,
+        onSpawnExitNormaly:onSpawnExitNormaly,
+        onSpawnExitErrorNoExit:onSpawnExitErrorNoExit,
+        onForkExitNormalyNoExit:onForkExitNormalyNoExit,
+        onForkExitErrorNoExit:onForkExitErrorNoExit,
         exit:exit,
         waitAndExit:waitAndExit,
         msg:msg

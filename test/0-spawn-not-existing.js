@@ -21,19 +21,22 @@ if (require.main === module) {
             console.log(common.msg.mainReceiveErrorEvent);
             process.exit();
         }
-        
+
         cluster.onEvent(ec.EV_READY, onReady);
         cluster.onEvent(ec.EV_ERROR, onError);
     }
 
     ec.start(workers);
-    common.waitAndExit(400);
+    common.waitAndExit(1000);
 
 } else {
 
     module.exports = {
         expected:{
-            stdout:[common.msg.mainReceiveErrorEvent]
+            stdout:[
+                common.msg.mainReceiveReadyEvent,
+                common.msg.mainReceiveErrorEvent
+            ]
         }
     };
 

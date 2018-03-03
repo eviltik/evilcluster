@@ -15,8 +15,20 @@ class Evilcluster extends EventEmitter {
         this.EV_READY = 'ec.ready';
         this.EV_CLUSTER_READY = 'clusterReady';
 
+        this.EV_SPAWN_EXIT_NORMALY = 'ec.spawnExitNormaly';
+        this.EV_SPAWN_EXIT_ERROR = 'ec.spawnExitWithError';
+
+        this.EV_FORK_EXIT_NORMALY = 'ec.forkExitNormaly';
+        this.EV_FORK_EXIT_ERROR = 'ec.forkExitWithError';
+
+
         cluster.onEvent = this.onEvent.bind(this);
         cluster.sendEvent = this.sendEvent.bind(this);
+
+        this.forks = [];
+        this.spawns = [];
+        this.forksErrorCount = {};
+        this.forksExitedNormaly = 0;
 
         this.config = {
             argz: require('minimist')(process.argv.slice(2)),
@@ -100,6 +112,10 @@ class Evilcluster extends EventEmitter {
 
     onEvent(eventName, fnc) {
 
+        if (typeof fnc != 'function') {
+            console.log('evilcluster: trying to register event "%s" with "%s" callback', eventName, typeof fnc);
+        }
+
         this.debug('onEvent',eventName);
 
         this.ee.on(eventName, (eventName, data) => {
@@ -121,26 +137,72 @@ class Evilcluster extends EventEmitter {
         return false;
     }
 
-    runCode(callback) {
+    connectEventEventAndRunCode(callback) {
 
-        this.ee.client.connect(this.config.evileventsOptions,(err) => {
+        this.ee.client.connect(this.config.evileventsOptions, (err) => {
 
             if (err && callback) {
                 this.debug('runCode error', err);
                 return callback(err);
             }
 
-            let file = path.resolve(this.config.workersDir+'/'+this.config.argz.worker);
-            try {
-                this.debug('runCode require', file);
-                require(file);
-            } catch(e) {
-                this.sendEvent(this.EV_ERROR, e.stack);
-                process.exit(1);
-            }
-
-            callback && callback();
+            this.runCode(callback);
         });
+
+    }
+
+    runCode(callback) {
+
+        let evExitError;
+        if (cluster.isFork) {
+            evExitError = 'master:'+this.EV_FORK_EXIT_ERROR;
+        } else {
+            evExitError = 'master:'+this.EV_SPAWN_EXIT_ERROR;
+        }
+
+        process.on('uncaughtException', (e) => {
+            this.debug('uncaughtException', e);
+            this.sendEvent('master:'+this.EV_ERROR, e.stack);
+            this.sendEvent(evExitError, {
+                error:e.stack,
+                workerId:cluster.cid
+            });
+            process.exit(1);
+        });
+
+        process.on('unhandledRejection', (reason, p) => {
+            this.debug('unhandledRejection', reason);
+            this.sendEvent('master:'+this.EV_ERROR, reason);
+            this.sendEvent(evExitError, {
+                error:reason,
+                workerId:cluster.cid
+            });
+            process.exit(1);
+        });
+
+        process.on('warning', (e) => {
+            this.debug('warning', e);
+            console.log('evilcluster received a warning from nodejs: ',e.message);
+        });
+
+        let file = path.resolve(this.config.workersDir+'/'+this.config.argz.worker);
+        this.debug('runCode require', file);
+
+        try {
+            require(file);
+        } catch(e) {
+            this.debug('runCode error', e);
+            setTimeout(() => {
+                this.sendEvent('master:'+this.EV_ERROR, e.stack);
+                this.sendEvent(evExitError, {
+                    error:e.stack,
+                    workerId:cluster.cid
+                });
+                process.exit(1);
+            },500);
+        }
+
+        callback && callback();
     }
 
     respawnWorker(workerId) {
@@ -153,7 +215,7 @@ class Evilcluster extends EventEmitter {
 
         setTimeout(()=>{
             this.spawnWorker(workerId);
-        },this.workers[workerId].respawnNextInterval);
+        }, this.workers[workerId].respawnNextInterval);
     }
 
     onWorkerError(workerSpawn, err) {
@@ -174,12 +236,18 @@ class Evilcluster extends EventEmitter {
 
         workerSpawn.killed = true;
         this.debug(
-            'onWorkerClose %s exit normally (0), dont trigger respawnWorker',
+            'onWorkerClose %s exit normally (0), respawnWorker not triggered',
             workerSpawn.id
         );
+        this.sendEvilEvent('master:'+this.EV_SPAWN_EXIT_NORMALY, {
+            spawn:workerSpawn.id,
+            code:exitCode
+        });
     }
 
     spawnWorker(workerId, callback) {
+
+        this.debug('spanWorker', workerId);
 
         let wk = this.workers[workerId];
 
@@ -267,7 +335,14 @@ class Evilcluster extends EventEmitter {
                 this.sendEvent('master:'+this.EV_READY);
             } else {
                 // spawn next worker
-                this.spawnWorker(Object.keys(this.workers)[this.spawned]);
+                let w = Object.keys(this.workers)[this.spawned];
+                if (w) {
+                    this.spawnWorker(w);
+                } else {
+                    // every spawns have been spawned,
+                    // an error occured in a spawns
+                    // let respawnWorker() do his job
+                }
             }
         });
 
@@ -304,7 +379,7 @@ class Evilcluster extends EventEmitter {
         let workerId = this.config.argz.worker;
 
         if (cluster.forkNumber) {
-            this.runCode(()=>{
+            this.connectEventEventAndRunCode(()=>{
                 process.nextTick(()=>{
                     // send event to spawned master process (not the main process)
                     this.debug('forked, sending %s', workerId+':'+this.EV_FORKED);
@@ -315,7 +390,7 @@ class Evilcluster extends EventEmitter {
         }
 
         if (!maxForks) {
-            this.runCode(()=> {
+            this.connectEventEventAndRunCode(()=> {
                 // worker has no forks, spawn is ready
                 process.nextTick(()=> {
                     this.debug('no forks required, sending master:'+this.EV_SPAWNED);
@@ -329,7 +404,7 @@ class Evilcluster extends EventEmitter {
 
         // spawn have forks
 
-        this.runCode(()=> {
+        this.connectEventEventAndRunCode(()=> {
             // worker has forks, wait for all forks to be ready
             this.workers[workerId].forked = 0;
 
@@ -354,13 +429,67 @@ class Evilcluster extends EventEmitter {
             });
 
             for (let i = 0; i<maxForks; i++) {
-                cluster.settings.args.push('--forkNumber='+(i+1));
-                this.debug('forking',JSON.stringify(cluster.settings));
-                cluster.fork();
-                cluster.settings.args.pop();
+
+                this.debug('forking', JSON.stringify(cluster.settings));
+                this.forkMe(i);
+
             }
 
         });
+    }
+
+    onForkExit(code, signal, forkNumber) {
+        if (code === 0) {
+
+            // normal exit
+
+            this.sendEvilEvent('master:'+this.EV_FORK_EXIT_NORMALY, {
+                workerId:cluster.cid,
+                forkNumber:forkNumber,
+                code:0
+            });
+
+            this.forksExitedNormaly+=1;
+
+            this.debug(
+                'fork %s#%s exit code %s, signal %s',
+                cluster.cid,
+                forkNumber,
+                code,
+                signal
+            );
+
+            if (this.forksExitedNormaly === this.config.argz.maxForks) {
+                setTimeout(() => {
+                    // exit spawn
+                    process.exit();
+                },200);
+            }
+            return;
+        } else {
+            // error exit
+            // error event detail are delegate in runCode()
+            this.debug('fork %s#%s exit code %s, signal %s', cluster.cid, forkNumber, code, signal);
+            if (!this.forksErrorCount[forkNumber]) this.forksErrorCount[forkNumber] = 0;
+            this.forksErrorCount[forkNumber]+=1;
+            if (this.forksErrorCount[forkNumber]<3) {
+                setTimeout(() => {
+                    this.forkMe(forkNumber);
+                },1000*this.forksErrorCount[forkNumber]);
+            } else {
+                // too many fork() has failed
+            }
+
+        }
+    }
+
+    forkMe(forkNumber) {
+        cluster.settings.args.push('--forkNumber='+(forkNumber+1));
+        let f = cluster.fork();
+        f.on('exit', (code, signal) => {
+            this.onForkExit(code, signal, forkNumber);
+        });
+        cluster.settings.args.pop();
     }
 
     start(workers) {
