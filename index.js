@@ -183,6 +183,10 @@ class Evilcluster extends EventEmitter {
 
         let wk = this.workers[workerId];
 
+        if (wk.disable) {
+            return callback && callback();
+        }
+
         let args = [];
 
         process.execArgv.forEach((arg) => {
@@ -244,9 +248,22 @@ class Evilcluster extends EventEmitter {
 
         this.spawned = 0;
 
+        let workersCount = 0;
+        let firstWorkerId;
+        for (let workerId in this.workers) {
+            if (!this.workers[workerId].disable) {
+                if (!firstWorkerId) {
+                    firstWorkerId = workerId;
+                }
+                workersCount++;
+            } else {
+                this.debug('spawnWorkers: %s is disabled',workerId);
+            }
+        }
+
         this.onEvent(this.EV_SPAWNED, (ev, data) => {
             this.spawned++;
-            if (this.spawned === Object.keys(this.workers).length) {
+            if (this.spawned === workersCount) {
                 this.sendEvent('master:'+this.EV_READY);
             } else {
                 // spawn next worker
@@ -255,8 +272,8 @@ class Evilcluster extends EventEmitter {
         });
 
         // spawn first worker
-        this.spawnWorker(Object.keys(this.workers)[0]);
-
+        if (firstWorkerId) this.spawnWorker(firstWorkerId);
+        callback && callback();
     }
 
     killSpawns() {
