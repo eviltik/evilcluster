@@ -22,7 +22,6 @@ class Evilcluster extends EventEmitter {
         this.EV_FORK_EXIT_NORMALY = 'ec.forkExitNormaly';
         this.EV_FORK_EXIT_ERROR = 'ec.forkExitWithError';
 
-
         cluster.onEvent = this.onEvent.bind(this);
         cluster.sendEvent = this.sendEvent.bind(this);
 
@@ -264,13 +263,15 @@ class Evilcluster extends EventEmitter {
 
     spawnWorker(workerId, callback) {
 
-        this.debug('spanWorker', workerId);
-
         let wk = this.workers[workerId];
+
+        wk.alreadySpawned = true;
 
         if (wk.disable) {
             return callback && callback();
         }
+
+        this.debug('spanWorker', workerId);
 
         let args = [];
 
@@ -330,6 +331,17 @@ class Evilcluster extends EventEmitter {
         callback && callback();
     }
 
+    spawnFindForNextEnabled(num) {
+        if (num>Object.keys(this.workers).length) return null;
+        let w = Object.keys(this.workers)[num];
+        if (!this.workers[w].disable) {
+            if (!this.workers[w].alreadySpawned) {
+                return w;
+            }
+        }
+        return this.spawnFindForNextEnabled(num+1);
+    }
+
     spawnWorkers(callback) {
 
         this.debug('spawnWorkers');
@@ -345,22 +357,22 @@ class Evilcluster extends EventEmitter {
                 }
                 workersCount++;
             } else {
-                this.debug('spawnWorkers: %s is disabled',workerId);
+                this.debug('spawnWorkers: %s is disabled', workerId);
             }
         }
 
         this.onEvent(this.EV_SPAWNED, (ev, data) => {
             this.spawned++;
-            if (this.spawned === workersCount) {
+            if (this.spawned >= workersCount) {
                 this.sendEvent('master:'+this.EV_READY);
             } else {
                 // spawn next worker
-                let w = Object.keys(this.workers)[this.spawned];
+                let w = this.spawnFindForNextEnabled(this.spawned);
                 if (w) {
                     this.spawnWorker(w);
                 } else {
                     // every spawns have been spawned,
-                    // an error occured in a spawns
+                    // if an error occured in a spawn,
                     // let respawnWorker() do his job
                 }
             }
@@ -514,6 +526,8 @@ class Evilcluster extends EventEmitter {
 
     start(workers) {
 
+        // don't remove disabled workers,
+        // because an enabled workers can need "options" of a disabled worker
         this.workers = JSON.parse(JSON.stringify(workers));
 
         if (cluster.isSpawn || cluster.isFork) {
