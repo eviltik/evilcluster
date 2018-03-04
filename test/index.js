@@ -51,7 +51,9 @@ function testsStart() {
                     } else if (line === expectedLine3) {
                         t.same(line, expectedLine3, 'stdout line '+(stdout.length)+' should be "'+expectedLine3+'"');
                     } else {
-                        t.same(line, 'line -1, 0 or +1', 'stdout line '+(stdout.length)+' should match line -1, 0 or +1');
+                        t.same(line, expectedLine1, 'stdout line -1 '+(stdout.length)+' should be "'+expectedLine1+'"');
+                        t.same(line, expectedLine2, 'stdout line  0 '+(stdout.length)+' should be "'+expectedLine2+'"');
+                        t.same(line, expectedLine3, 'stdout line +1 '+(stdout.length)+' should be "'+expectedLine3+'"');
                     }
                 }
             });
