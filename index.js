@@ -363,8 +363,9 @@ class Evilcluster extends EventEmitter {
 
         this.onEvent(this.EV_SPAWNED, (ev, data) => {
             this.spawned++;
-            if (this.spawned >= workersCount) {
+            if (this.spawned >= workersCount && !this.alreadySendReady) {
                 this.sendEvent('master:'+this.EV_READY);
+                this.alreadySendReady = true;
             } else {
                 // spawn next worker
                 let w = this.spawnFindForNextEnabled(this.spawned);
