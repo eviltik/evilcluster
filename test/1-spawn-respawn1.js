@@ -43,7 +43,7 @@ if (require.main === module) {
     }
 
     ec.start(workers);
-    common.waitAndExit(10000);
+    common.waitAndExit(15000);
 
 } else {
 
@@ -55,6 +55,12 @@ if (require.main === module) {
                 common.msg.mainReceiveSpawnedEventControlEmitter,
                 common.msg.mainReceiveSpawnedEventControlForksCount,
                 common.msg.mainReceiveReadyEvent,
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveSpawnExitErrorEvent,
+                common.msg.spawnReceivedSpawnedEvent+' (spawnUncauthexception1)',
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
                 common.msg.mainReceiveErrorEvent,
                 common.msg.mainReceiveSpawnExitErrorEvent,
                 common.msg.spawnReceivedSpawnedEvent+' (spawnUncauthexception1)',
