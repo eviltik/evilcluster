@@ -47,65 +47,33 @@ if (require.main === module) {
 
 } else {
 
-    if (process.env.TRAVIS) {
-        module.exports = {
-            expected:{
-                stdout:[
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceivedSpawnedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveSpawnedEvent,
-                    common.msg.mainReceiveSpawnedEventControlEmitter,
-                    common.msg.mainReceiveSpawnedEventControlForksCount,
-                    common.msg.mainReceiveReadyEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                ]
-            }
-        };
-    } else {
-        module.exports = {
-            expected:{
-                stdout:[
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceivedSpawnedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveSpawnedEvent,
-                    common.msg.mainReceiveSpawnedEventControlEmitter,
-                    common.msg.mainReceiveSpawnedEventControlForksCount,
-                    common.msg.mainReceiveReadyEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                    common.msg.mainReceiveErrorEvent,
-                    common.msg.mainReceiveForkExitErrorEvent,
-                ]
-            }
-        };
-    }
+    module.exports = {
+        expected:{
+            stdout:[
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.spawnReceivedSpawnedEvent+' (forkUncauthexception1)',
+                common.msg.mainReceiveSpawnedEvent,
+                common.msg.mainReceiveSpawnedEventControlEmitter,
+                common.msg.mainReceiveSpawnedEventControlForksCount,
+                common.msg.mainReceiveReadyEvent,
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.spawnReceiveForkedEvent+' (forkUncauthexception1)',
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+                common.msg.mainReceiveErrorEvent,
+                common.msg.mainReceiveForkExitErrorEvent,
+            ]
+        }
+    };
 }
