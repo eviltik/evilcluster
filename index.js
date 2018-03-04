@@ -53,7 +53,7 @@ class Evilcluster extends EventEmitter {
         this.config.spawnOptions = {
             // windowsHide: false when using node, true when running in a packaged binary (see pkg module)
             windowsHide: !this.config.binPath.match(/node/),
-            stdio: 'inherit',
+            //stdio: 'inherit',
         };
 
         this.config.evileventsOptions = {
@@ -314,6 +314,9 @@ class Evilcluster extends EventEmitter {
 
         wk.spawn = spawn(this.config.binPath, args, this.config.spawnOptions);
 
+        wk.spawn.stdout.pipe(process.stdout);
+        wk.spawn.stderr.pipe(process.stderr);
+
         wk.spawn.id = workerId;
 
         wk.spawn.on('close', function (exitCode) {
@@ -442,14 +445,12 @@ class Evilcluster extends EventEmitter {
 
             cluster.setupMaster({
                 args: this.config.clusterArgs,
-                silent: false
+                silent: true
             });
 
             for (let i = 0; i<maxForks; i++) {
-
                 this.debug('forking', JSON.stringify(cluster.settings));
                 this.forkMe(i);
-
             }
 
         });
@@ -503,6 +504,8 @@ class Evilcluster extends EventEmitter {
     forkMe(forkNumber) {
         cluster.settings.args.push('--forkNumber='+(forkNumber+1));
         let f = cluster.fork();
+        f.process.stdout.pipe(process.stdout);
+        f.process.stderr.pipe(process.stderr);
         f.on('exit', (code, signal) => {
             this.onForkExit(code, signal, forkNumber);
         });
