@@ -17,6 +17,7 @@ class Evilcluster extends EventEmitter {
 
         this.EV_SPAWN_EXIT_NORMALY = 'ec.spawnExitNormaly';
         this.EV_SPAWN_EXIT_ERROR = 'ec.spawnExitWithError';
+        this.EV_SPAWN_EXIT_NORMALY_ALL = 'ec.spawnExitNormalyAll';
 
         this.EV_FORK_EXIT_NORMALY = 'ec.forkExitNormaly';
         this.EV_FORK_EXIT_ERROR = 'ec.forkExitWithError';
@@ -239,10 +240,26 @@ class Evilcluster extends EventEmitter {
             'onWorkerClose %s exit normally (0), respawnWorker not triggered',
             workerSpawn.id
         );
+
         this.sendEvilEvent('master:'+this.EV_SPAWN_EXIT_NORMALY, {
             spawn:workerSpawn.id,
             code:exitCode
         });
+
+        this.workers[workerSpawn.id].exited = true;
+
+        let exitedCount = 0;
+        let exitedWanted = 0;
+        for (let w in this.workers) {
+            if (!this.workers[w].disable) {
+                exitedWanted++;
+                if (this.workers[w].exited) exitedCount++;
+            }
+        }
+        if (exitedCount === exitedWanted) {
+            this.sendEvilEvent('master:'+this.EV_SPAWN_EXIT_NORMALY_ALL);
+        }
+
     }
 
     spawnWorker(workerId, callback) {
