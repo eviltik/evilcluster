@@ -42,7 +42,7 @@ function testsStart() {
                 if (!line.match(/^[0-9]{4}\-/)) {
                     let expectedLine1 = expected.stdout[stdout.length];
                     let expectedLine2 = expected.stdout[stdout.length-1];
-                    let expectedLine3 = expected.stdout[stdout.length+2];
+                    let expectedLine3 = expected.stdout[stdout.length+1];
                     stdout.push(line);
                     if (line === expectedLine1) {
                         t.same(line, expectedLine1, 'stdout line '+(stdout.length)+' should be "'+expectedLine1+'"');
