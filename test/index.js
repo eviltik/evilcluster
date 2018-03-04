@@ -40,9 +40,19 @@ function testsStart() {
                 // ignore line when debug log
                 // when env var DEBUG is set
                 if (!line.match(/^[0-9]{4}\-/)) {
-                    let expectedLine = expected.stdout[stdout.length];
+                    let expectedLine1 = expected.stdout[stdout.length];
+                    let expectedLine2 = expected.stdout[stdout.length-1];
+                    let expectedLine3 = expected.stdout[stdout.length+2];
                     stdout.push(line);
-                    t.same(line, expectedLine, 'stdout line '+(stdout.length)+' should be "'+expectedLine+'"');
+                    if (line === expectedLine1) {
+                        t.same(line, expectedLine1, 'stdout line '+(stdout.length)+' should be "'+expectedLine1+'"');
+                    } else if (line === expectedLine2) {
+                        t.same(line, expectedLine2, 'stdout line '+(stdout.length)+' should be "'+expectedLine2+'"');
+                    } else if (line === expectedLine3) {
+                        t.same(line, expectedLine3, 'stdout line '+(stdout.length)+' should be "'+expectedLine3+'"');
+                    } else {
+                        t.same(line, 'line -1, 0 or +1', 'stdout line '+(stdout.length)+' should match line -1, 0 or +1');
+                    }
                 }
             });
 
