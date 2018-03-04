@@ -12,6 +12,9 @@ let workers = {
 
 if (require.main === module) {
 
+    let spawned = 0;
+    let maxSpawned = 2;
+
     function onSpawned(ev, data) {
         console.log(common.msg.mainReceiveSpawnedEvent);
 
@@ -20,6 +23,12 @@ if (require.main === module) {
 
         assert.equal(data.forks, workers[data._emitter].maxForks);
         console.log(common.msg.mainReceiveSpawnedEventControlForksCount);
+
+        if (spawned === maxSpawned) {
+            process.exit();
+        }
+
+        spawned++;
     }
 
     if (cluster.isMain) {
@@ -66,21 +75,7 @@ if (require.main === module) {
                 common.msg.spawnReceivedSpawnedEvent+' (spawnUncauthexception1)',
                 common.msg.mainReceiveSpawnedEvent,
                 common.msg.mainReceiveSpawnedEventControlEmitter,
-                common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.mainReceiveErrorEvent,
-                common.msg.mainReceiveSpawnExitErrorEvent,
-                common.msg.spawnReceivedSpawnedEvent+' (spawnUncauthexception1)',
-                common.msg.mainReceiveSpawnedEvent,
-                common.msg.mainReceiveSpawnedEventControlEmitter,
-                common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.mainReceiveErrorEvent,
-                common.msg.mainReceiveSpawnExitErrorEvent,
-                common.msg.spawnReceivedSpawnedEvent+' (spawnUncauthexception1)',
-                common.msg.mainReceiveSpawnedEvent,
-                common.msg.mainReceiveSpawnedEventControlEmitter,
-                common.msg.mainReceiveSpawnedEventControlForksCount,
-                common.msg.mainReceiveErrorEvent,
-                common.msg.mainReceiveSpawnExitErrorEvent,
+                common.msg.mainReceiveSpawnedEventControlForksCount
             ]
         }
     };
