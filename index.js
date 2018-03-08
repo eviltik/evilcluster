@@ -334,6 +334,7 @@ class Evilcluster extends EventEmitter {
     spawnFindForNextEnabled(num) {
         if (num>Object.keys(this.workers).length) return null;
         let w = Object.keys(this.workers)[num];
+        if (!this.workers[w]) return null;
         if (!this.workers[w].disable) {
             if (!this.workers[w].alreadySpawned) {
                 return w;
