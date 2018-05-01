@@ -417,7 +417,15 @@ class Evilcluster extends EventEmitter {
                 process.nextTick(()=>{
                     // send event to spawned master process (not the main process)
                     this.debug('forked, sending %s', workerId+':'+this.EV_FORKED);
-                    this.sendEvent(workerId+':'+this.EV_FORKED,{forkNumber:cluster.forkNumber});
+                    this.sendEvent(workerId+':'+this.EV_FORKED,{
+                        forkNumber:cluster.forkNumber,
+                        pid:process.pid
+                    });
+
+                    this.sendEvent('master:'+this.EV_FORKED,{
+                        forkNumber:cluster.forkNumber,
+                        pid:process.pid
+                    });
                 });
             });
             return;
@@ -428,9 +436,15 @@ class Evilcluster extends EventEmitter {
                 // worker has no forks, spawn is ready
                 process.nextTick(()=> {
                     this.debug('no forks required, sending master:'+this.EV_SPAWNED);
-                    this.sendEvent('master:' + this.EV_SPAWNED, {forks:0});
+                    this.sendEvent('master:' + this.EV_SPAWNED, {
+                        forks:0,
+                        pid:process.pid
+                    });
                 });
-                this.sendEvent(workerId + ':' + this.EV_SPAWNED,{forks:0});
+                this.sendEvent(workerId + ':' + this.EV_SPAWNED,{
+                    forks:0,
+                    pid:process.pid
+                });
             });
             return;
         }
@@ -445,7 +459,10 @@ class Evilcluster extends EventEmitter {
             this.onEvent(this.EV_SPAWNED, () => {
                 //setTimeout(() => {
                     this.debug('all forks has been forked, sending master:'+this.EV_SPAWNED);
-                    this.sendEvent('master:' + this.EV_SPAWNED, {forks: this.workers[workerId].forked});
+                    this.sendEvent('master:' + this.EV_SPAWNED, {
+                        forks: this.workers[workerId].forked,
+                        pid:process.pid
+                    });
                 //},0);
             });
 
@@ -453,7 +470,10 @@ class Evilcluster extends EventEmitter {
                 this.workers[workerId].forked++;
                 if (this.workers[workerId].forked == this.config.argz.maxForks) {
                     this.debug('all forks has been forked, sending '+workerId+':'+this.EV_SPAWNED);
-                    this.sendEvent(workerId + ':' + this.EV_SPAWNED, {forks: this.workers[workerId].forked});
+                    this.sendEvent(workerId + ':' + this.EV_SPAWNED, {
+                        forks: this.workers[workerId].forked,
+                        pid:process.pid
+                    });
                 }
             })
 
@@ -492,10 +512,10 @@ class Evilcluster extends EventEmitter {
             );
 
             if (this.forksExitedNormaly === this.config.argz.maxForks) {
-                setTimeout(() => {
+                //setTimeout(() => {
                     // exit spawn
                     process.exit();
-                },200);
+                //},200);
             }
             return;
         } else {
@@ -520,10 +540,13 @@ class Evilcluster extends EventEmitter {
         let f = cluster.fork();
         f.process.stdout.pipe(process.stdout);
         f.process.stderr.pipe(process.stderr);
+
         f.on('exit', (code, signal) => {
             this.onForkExit(code, signal, forkNumber);
         });
+
         cluster.settings.args.pop();
+        return f;
     }
 
     start(workers) {
