@@ -1,6 +1,6 @@
 {
   "name": "evilcluster",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "nodejs cluster manager",
   "main": "index.js",
   "scripts": {
