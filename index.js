@@ -118,14 +118,7 @@ class Evilcluster extends EventEmitter {
 
         this.debug('onEvent',eventName);
 
-        this.ee.on(eventName, (eventName, data) => {
-            if (data!=undefined) {
-                this.debug('onEvent received %s %s', eventName, JSON.stringify(data));
-            } else {
-                this.debug('onEvent received %s', eventName);
-            }
-            fnc(eventName, data);
-        });
+        this.ee.on(eventName,fnc);
     }
 
     isSpawn() {
