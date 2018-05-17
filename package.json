@@ -1,6 +1,6 @@
 {
   "name": "evilcluster",
-  "version": "0.9.9",
+  "version": "1.0.0",
   "description": "nodejs cluster manager",
   "main": "index.js",
   "scripts": {
@@ -27,6 +27,6 @@
     "minimist": "1.2.0"
   },
   "devDependencies": {
-    "tap": "11.1.4"
+    "tap": "11.1.5"
   }
 }
