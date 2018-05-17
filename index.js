@@ -163,11 +163,11 @@ class Evilcluster extends EventEmitter {
             process.exit(1);
         });
 
-        process.on('unhandledRejection', (reason, p) => {
-            this.debug('unhandledRejection', reason);
-            this.sendEvent('master:'+this.EV_ERROR, reason);
+        process.on('unhandledRejection', (e, p) => {
+            this.debug('unhandledRejection', e);
+            this.sendEvent('master:'+this.EV_ERROR, e.stack);
             this.sendEvent(evExitError, {
-                error:reason,
+                error:e.stack,
                 workerId:cluster.cid
             });
             process.exit(1);
