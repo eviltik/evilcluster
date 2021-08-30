@@ -1,6 +1,6 @@
 {
   "name": "evilcluster",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "nodejs cluster manager",
   "main": "index.js",
   "scripts": {
@@ -20,13 +20,13 @@
   },
   "homepage": "https://github.com/eviltik/evilcluster#readme",
   "dependencies": {
-    "async": "2.6.0",
-    "debug": "3.1.0",
-    "evilevents": "2.0.4",
-    "evillogger": "1.0.6",
-    "minimist": "1.2.0"
+    "async": "3.2.0",
+    "debug": "4.3.1",
+    "evilevents": "2.0.12",
+    "evillogger": "1.4.4",
+    "minimist": "1.2.5"
   },
   "devDependencies": {
-    "tap": "11.1.5"
+    "tap": "14.11.0"
   }
 }

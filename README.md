@@ -1,6 +1,9 @@
 # evilcluster
-[![Build Status](https://travis-ci.org/eviltik/evilcluster.svg?branch=master)](https://travis-ci.org/eviltik/evilcluster)
+
+![Node.js CI](https://github.com/eviltik/evilcluster/workflows/Node.js%20CI/badge.svg)
+[![npm version](https://badge.fury.io/js/evilcluster.svg)](https://badge.fury.io/js/evilcluster)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+[![Dependency Status](https://david-dm.org/eviltik/evilcluster.svg)](https://david-dm.org/eviltik/evilcluster)
 
 Monolithic approach of nodejs clustering.
 
