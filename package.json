@@ -20,13 +20,13 @@
   },
   "homepage": "https://github.com/eviltik/evilcluster#readme",
   "dependencies": {
-    "async": "3.2.0",
-    "debug": "4.3.1",
-    "evilevents": "2.0.12",
-    "evillogger": "1.4.4",
+    "async": "3.2.1",
+    "debug": "4.3.2",
+    "evilevents": "2.0.16",
+    "evillogger": "1.4.5",
     "minimist": "1.2.5"
   },
   "devDependencies": {
-    "tap": "14.11.0"
+    "tap": "15.0.9"
   }
 }
