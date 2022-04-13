@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/eviltik/evilcluster#readme",
   "dependencies": {
-    "async": "3.2.1",
+    "async": "3.2.2",
     "debug": "4.3.2",
     "evilevents": "2.0.16",
     "evillogger": "1.4.5",
